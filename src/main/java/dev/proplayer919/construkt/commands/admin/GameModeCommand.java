@@ -1,7 +1,7 @@
-package dev.proplayer919.construkt.commands;
+package dev.proplayer919.construkt.commands.admin;
 
-import dev.proplayer919.construkt.helpers.MessagingHelper;
-import dev.proplayer919.construkt.permissions.PermissionRegistry;
+import dev.proplayer919.construkt.messages.MessagingHelper;
+import dev.proplayer919.construkt.messages.Namespace;
 import dev.proplayer919.construkt.permissions.PlayerPermissionRegistry;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentType;
@@ -14,15 +14,15 @@ public class GameModeCommand extends Command {
         super("gamemode", "gm", "setgamemode", "setgm");
 
         // Executed if no other executor can be used
-        setDefaultExecutor((sender, context) -> MessagingHelper.sendAdminMessage(sender, "Usage: /gamemode <gamemode>"));
+        setDefaultExecutor((sender, context) -> MessagingHelper.sendMessage(sender, Namespace.ADMIN, "Usage: /gamemode <gamemode>"));
 
         var gamemodeArg = ArgumentType.String("gamemode");
 
         addSyntax((sender, context) -> {
             final String gamemode = context.get(gamemodeArg);
             if (sender instanceof Player player) {
-                if (!PlayerPermissionRegistry.hasPermission(player, PermissionRegistry.getPermissionByNode("command.gamemode"))) {
-                    MessagingHelper.sendPermissionMessage(sender, "You do not have permission to use this command.");
+                if (!PlayerPermissionRegistry.hasPermission(player, "command.gamemode")) {
+                    MessagingHelper.sendMessage(sender, Namespace.PERMISSION, "You do not have permission to use this command.");
                     return;
                 }
 
@@ -32,14 +32,14 @@ public class GameModeCommand extends Command {
                     case "adventure", "a", "2" -> player.setGameMode(GameMode.ADVENTURE);
                     case "spectator", "sp", "3" -> player.setGameMode(GameMode.SPECTATOR);
                     default -> {
-                        MessagingHelper.sendErrorMessage(sender, "Invalid gamemode. Valid options are: survival, creative, adventure, spectator.");
+                        MessagingHelper.sendMessage(sender, Namespace.ERROR, "Invalid gamemode '" + gamemode + "'. Valid options are: survival, creative, adventure, spectator.");
                         return;
                     }
                 }
 
-                MessagingHelper.sendAdminMessage(sender, "Your gamemode has been set to " + gamemode + ".");
+                MessagingHelper.sendMessage(sender, Namespace.ADMIN, "Your gamemode has been set to " + gamemode + ".");
             } else {
-                MessagingHelper.sendErrorMessage(sender, "Only players can use this command.");
+                MessagingHelper.sendMessage(sender, Namespace.ERROR, "Only players can use this command.");
             }
         }, gamemodeArg);
     }

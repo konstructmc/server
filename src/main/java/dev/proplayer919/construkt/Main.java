@@ -1,19 +1,22 @@
 package dev.proplayer919.construkt;
 
-import dev.proplayer919.construkt.commands.GameModeCommand;
+import dev.proplayer919.construkt.commands.admin.GameModeCommand;
 import dev.proplayer919.construkt.commands.HubCommand;
-import dev.proplayer919.construkt.commands.PermissionCommand;
+import dev.proplayer919.construkt.commands.admin.KickHubCommand;
+import dev.proplayer919.construkt.commands.admin.PermissionCommand;
+import dev.proplayer919.construkt.messages.BanMessage;
+import dev.proplayer919.construkt.messages.Namespace;
+import dev.proplayer919.construkt.permissions.PlayerPermissionRegistry;
 import dev.proplayer919.construkt.sidebar.SidebarData;
 import dev.proplayer919.construkt.instance.HubInstanceData;
 import dev.proplayer919.construkt.instance.HubInstanceRegistry;
-import dev.proplayer919.construkt.permissions.Permission;
-import dev.proplayer919.construkt.permissions.PermissionRegistry;
 import dev.proplayer919.construkt.generators.InstanceCreator;
 import dev.proplayer919.construkt.sidebar.SidebarRegistry;
 import io.github.togar2.pvp.MinestomPvP;
 import io.github.togar2.pvp.feature.CombatFeatureSet;
 import io.github.togar2.pvp.feature.CombatFeatures;
 import net.bridgesplash.sidebar.SidebarAPI;
+import net.kyori.adventure.text.Component;
 import net.mangolise.anticheat.MangoAC;
 import net.mangolise.anticheat.events.PlayerFlagEvent;
 import net.minestom.server.Auth;
@@ -25,8 +28,8 @@ import net.minestom.server.event.player.*;
 import net.minestom.server.instance.*;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.coordinate.Pos;
-import dev.proplayer919.construkt.commands.GiveCommand;
-import dev.proplayer919.construkt.helpers.MessagingHelper;
+import dev.proplayer919.construkt.commands.admin.GiveCommand;
+import dev.proplayer919.construkt.messages.MessagingHelper;
 import dev.proplayer919.construkt.storage.SqliteDatabase;
 import net.minestom.server.command.ConsoleSender;
 import org.jetbrains.annotations.NotNull;
@@ -37,6 +40,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Map;
 
 public class Main {
     public final static CombatFeatureSet modernVanilla = CombatFeatures.modernVanilla();
@@ -50,22 +54,6 @@ public class Main {
         BlockPlacementRuleRegistrations.registerDefault();
         BlockBehaviorRuleRegistrations.registerDefault();
 
-        // Create permissions
-        Permission buildPermission = new Permission("server.build");
-        Permission breakPermission = new Permission("server.break");
-        Permission giveCommandPermission = new Permission("command.give");
-        Permission gamemodeCommandPermission = new Permission("command.gamemode");
-        Permission permissionCommandPermission = new Permission("command.permission");
-        Permission hostCommandPermission = new Permission("command.host");
-
-        // Register permissions
-        PermissionRegistry.registerPermission(buildPermission);
-        PermissionRegistry.registerPermission(breakPermission);
-        PermissionRegistry.registerPermission(giveCommandPermission);
-        PermissionRegistry.registerPermission(gamemodeCommandPermission);
-        PermissionRegistry.registerPermission(permissionCommandPermission);
-        PermissionRegistry.registerPermission(hostCommandPermission);
-
         // Initialize SQLite database for persistent data
         SqliteDatabase sqliteDb = new SqliteDatabase(Path.of("data", "construkt-data.db"));
         try {
@@ -78,7 +66,7 @@ public class Main {
         Runtime.getRuntime().addShutdownHook(new Thread(sqliteDb::close, "Sqlite-Shutdown-Close"));
 
         // Create hub instances
-        int hubs = 2; // Number of hub instances to create
+        int hubs = 5; // Number of hub instances to create
         for (int i = 0; i < hubs; i++) {
             InstanceContainer hubInstance = InstanceCreator.createSimpleInstanceContainer(Block.GRASS_BLOCK, Block.GOLD_BLOCK, false);
             HubInstanceData hubData = new HubInstanceData(hubInstance, "hub-" + (i + 1));
@@ -90,19 +78,29 @@ public class Main {
         GameModeCommand gameModeCommand = new GameModeCommand();
         PermissionCommand permissionCommand = new PermissionCommand();
         HubCommand hubCommand = new HubCommand();
+        KickHubCommand kickHubCommand = new KickHubCommand();
+        dev.proplayer919.construkt.commands.admin.KickCommand kickCommand = new dev.proplayer919.construkt.commands.admin.KickCommand();
+        dev.proplayer919.construkt.commands.admin.BanCommand banCommand = new dev.proplayer919.construkt.commands.admin.BanCommand();
+        dev.proplayer919.construkt.commands.admin.UnbanCommand unbanCommand = new dev.proplayer919.construkt.commands.admin.UnbanCommand();
 
         MinecraftServer.getCommandManager().register(giveCommand);
         MinecraftServer.getCommandManager().register(gameModeCommand);
         MinecraftServer.getCommandManager().register(permissionCommand);
         MinecraftServer.getCommandManager().register(hubCommand);
+        MinecraftServer.getCommandManager().register(kickHubCommand);
+        MinecraftServer.getCommandManager().register(kickCommand);
+        MinecraftServer.getCommandManager().register(banCommand);
+        MinecraftServer.getCommandManager().register(unbanCommand);
 
         // Player spawning
         GlobalEventHandler globalEventHandler = MinecraftServer.getGlobalEventHandler();
+
         globalEventHandler.addListener(AsyncPlayerConfigurationEvent.class, event -> {
             final Player player = event.getPlayer();
 
             // Pick a hub instance with the least players
             HubInstanceData hubInstanceData = HubInstanceRegistry.getInstanceWithLowestPlayers();
+            hubInstanceData.getPlayers().add(player);
             Instance hubInstance = hubInstanceData.getInstance();
             event.setSpawningInstance(hubInstance);
             player.setRespawnPoint(new Pos(0.5, 40, 0.5));
@@ -111,6 +109,20 @@ public class Main {
 
         globalEventHandler.addListener(PlayerSpawnEvent.class, event -> {
             final Player player = event.getPlayer();
+
+            // Check if player is banned
+            try {
+                java.util.Map<String, Object> banInfo = sqliteDb.getBanInfoSync(player.getUuid());
+                if (banInfo != null) {
+                    String reason = (String) banInfo.get("reason");
+                    Object expiresObj = banInfo.get("expires_at");
+                    Long expires = expiresObj == null ? null : ((Number) expiresObj).longValue();
+                    net.kyori.adventure.text.Component comp = dev.proplayer919.construkt.messages.BanMessage.buildBanComponent(reason, expires);
+                    player.kick(comp);
+                }
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
 
             // Find the instance the player is in
             Instance playerInstance = player.getInstance();
@@ -136,8 +148,12 @@ public class Main {
                 return;
             }
 
+            if (PlayerPermissionRegistry.hasPermission(player, "server.break")) {
+                return;
+            }
+
             if (HubInstanceRegistry.getInstanceWithPlayer(player.getUuid()) != null) {
-                MessagingHelper.sendProtectMessage(player, "You cannot break blocks in a hub");
+                MessagingHelper.sendMessage(player, Namespace.PROTECT, "You cannot break blocks in a hub");
                 event.setCancelled(true);
             }
         });
@@ -150,8 +166,12 @@ public class Main {
                 return;
             }
 
+            if (PlayerPermissionRegistry.hasPermission(player, "server.build")) {
+                return;
+            }
+
             if (HubInstanceRegistry.getInstanceWithPlayer(player.getUuid()) != null) {
-                MessagingHelper.sendProtectMessage(player, "You cannot place blocks in a hub");
+                MessagingHelper.sendMessage(player, Namespace.PROTECT, "You cannot break blocks in a hub");
                 event.setCancelled(true);
             }
         });
@@ -159,7 +179,7 @@ public class Main {
         globalEventHandler.addListener(PlayerFlagEvent.class, event -> {
             final Player player = event.player();
 
-            MessagingHelper.sendAnticheatMessage(player, "You have been flagged for " + event.checkName() + " (Certainty: " + (event.certainty() * 100) + "%)");
+            MessagingHelper.sendMessage(player, Namespace.ANTICHEAT, "You have been flagged for " + event.checkName() + " (Certainty: " + (event.certainty() * 100) + "%)");
         });
 
         // Setup anticheat

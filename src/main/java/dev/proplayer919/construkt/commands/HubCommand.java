@@ -1,8 +1,9 @@
 package dev.proplayer919.construkt.commands;
 
-import dev.proplayer919.construkt.helpers.MessagingHelper;
+import dev.proplayer919.construkt.messages.MessagingHelper;
 import dev.proplayer919.construkt.instance.HubInstanceData;
 import dev.proplayer919.construkt.instance.HubInstanceRegistry;
+import dev.proplayer919.construkt.messages.Namespace;
 import dev.proplayer919.construkt.sidebar.SidebarData;
 import dev.proplayer919.construkt.sidebar.SidebarRegistry;
 import net.minestom.server.command.builder.Command;
@@ -17,7 +18,7 @@ public class HubCommand extends Command {
         super("hub");
 
         // Executed if no other executor can be used
-        setDefaultExecutor((sender, context) -> MessagingHelper.sendServerMessage(sender, "Usage: /hub hub-<id>"));
+        setDefaultExecutor((sender, context) -> MessagingHelper.sendMessage(sender, Namespace.SERVER, "Usage: /hub hub-<id>"));
 
         var idArg = ArgumentType.String("id");
 
@@ -42,13 +43,12 @@ public class HubCommand extends Command {
                     player.setInstance(hubInstance.getInstance());
                     player.teleport(new Pos(0.5, 40, 0.5));
                     hubInstance.getPlayers().add(player);
-                    player.setGameMode(GameMode.SURVIVAL);
-                    MessagingHelper.sendServerMessage(player, "Joined hub '" + id + "'.");
+                    MessagingHelper.sendMessage(player, Namespace.SERVER, "Joined " + id + ".");
                 } else {
-                    MessagingHelper.sendErrorMessage(player, "Hub with ID '" + id + "' does not exist.");
+                    MessagingHelper.sendMessage(player, Namespace.ERROR, "Hub with ID '" + id + "' does not exist.");
                 }
             } else {
-                MessagingHelper.sendErrorMessage(sender, "Only players can use this command.");
+                MessagingHelper.sendMessage(sender, Namespace.ERROR, "Only players can use this command.");
             }
         }, idArg);
     }

@@ -78,6 +78,10 @@ public class SqliteDatabase {
             s.execute("CREATE TABLE IF NOT EXISTS players (uuid TEXT PRIMARY KEY);");
             s.execute("CREATE TABLE IF NOT EXISTS player_permissions (player_uuid TEXT NOT NULL, permission_node TEXT NOT NULL, PRIMARY KEY(player_uuid, permission_node), FOREIGN KEY(player_uuid) REFERENCES players(uuid) ON DELETE CASCADE);");
             s.execute("CREATE INDEX IF NOT EXISTS idx_permission_node ON player_permissions(permission_node);");
+
+            // Bans table: player_uuid (text primary key), banned_by (text, nullable), reason (text), created_at (integer epoch millis), expires_at (integer epoch millis, nullable)
+            s.execute("CREATE TABLE IF NOT EXISTS bans (player_uuid TEXT PRIMARY KEY, banned_by TEXT, reason TEXT, created_at INTEGER NOT NULL, expires_at INTEGER);");
+            s.execute("CREATE INDEX IF NOT EXISTS idx_bans_expires_at ON bans(expires_at);");
         }
     }
 
@@ -163,8 +167,44 @@ public class SqliteDatabase {
 
     // Synchronous convenience wrappers (blocks on async)
     public boolean playerHasPermissionSync(UUID playerUuid, String permissionNode) {
-        List<Map<String, Object>> rows = runAsyncQuery("SELECT 1 FROM player_permissions WHERE player_uuid = ? AND permission_node = ? LIMIT 1", playerUuid.toString(), permissionNode).join();
-        return !rows.isEmpty();
+        if (permissionNode == null) return false;
+
+        // Build candidate permission nodes to check in order of specificity:
+        // 1) exact node (e.g., "command.give.item")
+        // 2) prefix wildcards (e.g., "command.give.*", "command.*")
+        // 3) global wildcard "*"
+        // Use a LinkedHashSet to preserve insertion order and avoid duplicates
+        java.util.Set<String> candidates = new java.util.LinkedHashSet<>();
+        candidates.add(permissionNode);
+
+        String[] parts = permissionNode.split("\\.");
+        for (int i = parts.length - 1; i >= 1; i--) {
+            String prefix = String.join(".", java.util.Arrays.copyOf(parts, i));
+            candidates.add(prefix + ".*");
+        }
+
+        candidates.add("*");
+
+        // Build SQL with the appropriate number of placeholders
+        StringBuilder sql = new StringBuilder("SELECT 1 FROM player_permissions WHERE player_uuid = ? AND permission_node IN (");
+        for (int i = 0; i < candidates.size(); i++) {
+            if (i > 0) sql.append(",");
+            sql.append("?");
+        }
+        sql.append(") LIMIT 1");
+
+        // Prepare parameters: first the UUID, then the candidate nodes
+        java.util.List<Object> params = new java.util.ArrayList<>();
+        params.add(playerUuid.toString());
+        params.addAll(candidates);
+
+        // Run query and return whether any matching row exists
+        try {
+            List<Map<String, Object>> rows = runAsyncQuery(sql.toString(), params.toArray()).join();
+            return !rows.isEmpty();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void insertPlayerPermissionSync(UUID playerUuid, String permissionNode) {
@@ -175,5 +215,45 @@ public class SqliteDatabase {
     public void removePlayerPermissionSync(UUID playerUuid, String permissionNode) {
         runAsyncUpdate("DELETE FROM player_permissions WHERE player_uuid = ? AND permission_node = ?", playerUuid.toString(), permissionNode).join();
     }
-}
 
+    // --- Bans support ---
+    // Insert or replace a ban record. bannedByUuid may be null; expiresAtMillis may be null for permanent bans.
+    public void insertBanSync(UUID playerUuid, String bannedByUuid, Long expiresAtMillis, String reason) {
+        // Ensure player row exists for FK consistency with players table if desired
+        runAsyncUpdate("INSERT OR IGNORE INTO players(uuid) VALUES (?)", playerUuid.toString()).join();
+        runAsyncUpdate("INSERT OR REPLACE INTO bans(player_uuid, banned_by, reason, created_at, expires_at) VALUES (?, ?, ?, ?, ?)",
+                playerUuid.toString(), bannedByUuid, reason, System.currentTimeMillis(), expiresAtMillis).join();
+    }
+
+    // Remove ban (unban)
+    public void removeBanSync(UUID playerUuid) {
+        runAsyncUpdate("DELETE FROM bans WHERE player_uuid = ?", playerUuid.toString()).join();
+    }
+
+    // Return ban info as a Map with keys: reason (String), expires_at (Long) or null. Returns null if no active ban.
+    public Map<String, Object> getBanInfoSync(UUID playerUuid) {
+        try {
+            List<Map<String, Object>> rows = runAsyncQuery("SELECT reason, expires_at FROM bans WHERE player_uuid = ? LIMIT 1", playerUuid.toString()).join();
+            if (rows.isEmpty()) return null;
+            Map<String, Object> row = rows.get(0);
+            Object expiresObj = row.get("expires_at");
+            if (expiresObj != null) {
+                long expiresAt = ((Number) expiresObj).longValue();
+                long now = System.currentTimeMillis();
+                if (expiresAt > 0 && now > expiresAt) {
+                    // ban expired -> remove it and return null
+                    removeBanSync(playerUuid);
+                    return null;
+                }
+            }
+            return row;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // Returns true if the player is currently banned (and performs expiry cleanup)
+    public boolean isPlayerBannedSync(UUID playerUuid) {
+        return getBanInfoSync(playerUuid) != null;
+    }
+}

@@ -1,8 +1,7 @@
-package dev.proplayer919.construkt.commands;
+package dev.proplayer919.construkt.commands.admin;
 
-import dev.proplayer919.construkt.helpers.MessagingHelper;
-import dev.proplayer919.construkt.permissions.Permission;
-import dev.proplayer919.construkt.permissions.PermissionRegistry;
+import dev.proplayer919.construkt.messages.MessagingHelper;
+import dev.proplayer919.construkt.messages.Namespace;
 import dev.proplayer919.construkt.permissions.PlayerPermissionRegistry;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.builder.Command;
@@ -17,7 +16,7 @@ public class PermissionCommand extends Command {
         super("permission", "perm");
 
         // Executed if no other executor can be used
-        setDefaultExecutor((sender, context) -> MessagingHelper.sendAdminMessage(sender, "Usage: /permission <username/UUID> <permission> <true/false>"));
+        setDefaultExecutor((sender, context) -> MessagingHelper.sendMessage(sender, Namespace.ADMIN, "Usage: /permission <username/UUID> <permission> <true/false>"));
 
         var usernameArg = ArgumentType.String("username");
         var permissionArg = ArgumentType.String("permission");
@@ -29,17 +28,12 @@ public class PermissionCommand extends Command {
             final boolean value = context.get(valueArg);
 
             if (sender instanceof Player player) {
-                if (!PlayerPermissionRegistry.hasPermission(player, PermissionRegistry.getPermissionByNode("command.permission"))) {
-                    MessagingHelper.sendPermissionMessage(sender, "You do not have permission to use this command.");
+                if (!PlayerPermissionRegistry.hasPermission(player, "command.permission")) {
+                    MessagingHelper.sendMessage(sender, Namespace.PERMISSION, "You do not have permission to use this command.");
                     return;
                 }
             }
 
-            Permission permission = PermissionRegistry.getPermissionByNode(permissionNode);
-            if (permission == null) {
-                MessagingHelper.sendErrorMessage(sender, "Permission node " + permissionNode + " does not exist.");
-                return;
-            }
 
             // Detect if username is a UUID or a player name
             boolean isUUID = false;
@@ -56,25 +50,25 @@ public class PermissionCommand extends Command {
             if (isUUID) {
                 UUID targetUUID = UUID.fromString(username);
                 if (value) {
-                    PlayerPermissionRegistry.grantPermission(targetUUID, permission);
-                    MessagingHelper.sendAdminMessage(sender, "Granted permission " + permissionNode + " to UUID " + username);
+                    PlayerPermissionRegistry.grantPermission(targetUUID, permissionNode);
+                    MessagingHelper.sendMessage(sender, Namespace.ADMIN, "Granted permission " + permissionNode + " to UUID " + username);
                 } else {
-                    PlayerPermissionRegistry.revokePermission(targetUUID, permission);
-                    MessagingHelper.sendAdminMessage(sender, "Revoked permission " + permissionNode + " from UUID " + username);
+                    PlayerPermissionRegistry.revokePermission(targetUUID, permissionNode);
+                    MessagingHelper.sendMessage(sender, Namespace.ADMIN, "Revoked permission " + permissionNode + " from UUID " + username);
                 }
             } else {
                 Player targetPlayer = MinecraftServer.getConnectionManager().findOnlinePlayer(username);
                 if (targetPlayer == null) {
-                    MessagingHelper.sendErrorMessage(sender, "Player " + username + " is not online.");
+                    MessagingHelper.sendMessage(sender, Namespace.ERROR, "Player " + username + " is not online.");
                     return;
                 }
 
                 if (value) {
-                    PlayerPermissionRegistry.grantPermission(targetPlayer, permission);
-                    MessagingHelper.sendAdminMessage(sender, "Granted permission " + permissionNode + " to " + username);
+                    PlayerPermissionRegistry.grantPermission(targetPlayer, permissionNode);
+                    MessagingHelper.sendMessage(sender, Namespace.ADMIN, "Granted permission " + permissionNode + " to " + username);
                 } else {
-                    PlayerPermissionRegistry.revokePermission(targetPlayer, permission);
-                    MessagingHelper.sendAdminMessage(sender, "Revoked permission " + permissionNode + " from " + username);
+                    PlayerPermissionRegistry.revokePermission(targetPlayer, permissionNode);
+                    MessagingHelper.sendMessage(sender, Namespace.ADMIN, "Revoked permission " + permissionNode + " from " + username);
                 }
             }
         }, usernameArg, permissionArg, valueArg);

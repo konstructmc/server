@@ -6,8 +6,7 @@ import net.minestom.server.entity.Player;
 import java.util.UUID;
 
 public class PlayerPermissionRegistry {
-    // Use a SQLite database for persistence instead of a serialized file
-    private static final SqliteDatabase db = new SqliteDatabase(java.nio.file.Path.of("data", "permissions.db"));
+    private static final SqliteDatabase db = new SqliteDatabase(java.nio.file.Path.of("data", "construkt-data.db"));
 
     static {
         try {
@@ -20,38 +19,41 @@ public class PlayerPermissionRegistry {
         Runtime.getRuntime().addShutdownHook(new Thread(db::close, "PlayerPermissionRegistry-DB-Close"));
     }
 
-    public static void grantPermission(Player player, Permission permission) {
-        grantPermission(player.getUuid(), permission);
+    // Grant by Permission node string
+    public static void grantPermission(Player player, String permissionNode) {
+        grantPermission(player.getUuid(), permissionNode);
     }
 
-    public static void grantPermission(UUID id, Permission permission) {
+    public static void grantPermission(UUID id, String permissionNode) {
         try {
-            db.insertPlayerPermissionSync(id, permission.getPermissionNode());
+            db.insertPlayerPermissionSync(id, permissionNode);
         } catch (Throwable t) {
             t.printStackTrace();
         }
     }
 
-    public static boolean hasPermission(Player player, Permission permission) {
-        return hasPermission(player.getUuid(), permission);
+    // Check permission by node string (supports wildcard logic implemented in SqliteDatabase)
+    public static boolean hasPermission(Player player, String permissionNode) {
+        return hasPermission(player.getUuid(), permissionNode);
     }
 
-    public static boolean hasPermission(UUID id, Permission permission) {
+    public static boolean hasPermission(UUID id, String permissionNode) {
         try {
-            return db.playerHasPermissionSync(id, permission.getPermissionNode());
+            return db.playerHasPermissionSync(id, permissionNode);
         } catch (Throwable t) {
             t.printStackTrace();
             return false;
         }
     }
 
-    public static void revokePermission(Player player, Permission permission) {
-        revokePermission(player.getUuid(), permission);
+    // Revoke by permission node string
+    public static void revokePermission(Player player, String permissionNode) {
+        revokePermission(player.getUuid(), permissionNode);
     }
 
-    public static void revokePermission(UUID id, Permission permission) {
+    public static void revokePermission(UUID id, String permissionNode) {
         try {
-            db.removePlayerPermissionSync(id, permission.getPermissionNode());
+            db.removePlayerPermissionSync(id, permissionNode);
         } catch (Throwable t) {
             t.printStackTrace();
         }

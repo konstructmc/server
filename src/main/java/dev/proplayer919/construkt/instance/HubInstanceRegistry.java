@@ -44,6 +44,16 @@ public class HubInstanceRegistry {
         return lowest;
     }
 
+    public static HubInstanceData getInstanceWithLowestPlayersExcept (HubInstanceData hub) {
+        HubInstanceData lowest = null;
+        for (HubInstanceData instance : instances.values()) {
+            if ((lowest == null || (instance.getInstance().getPlayers().size() < lowest.getInstance().getPlayers().size())) && !instance.equals(hub)) {
+                lowest = instance;
+            }
+        }
+        return lowest;
+    }
+
     public static HubInstanceData getInstanceWithPlayer(UUID playerId) {
         for (HubInstanceData instance : instances.values()) {
             if (instance.getInstance().getPlayers().stream().anyMatch(player -> player.getUuid().equals(playerId))) {
