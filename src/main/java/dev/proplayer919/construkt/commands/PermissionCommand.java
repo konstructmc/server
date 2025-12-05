@@ -11,7 +11,6 @@ import net.minestom.server.entity.Player;
 
 import java.util.UUID;
 
-@SuppressWarnings("PatternValidation")
 public class PermissionCommand extends Command {
 
     public PermissionCommand() {

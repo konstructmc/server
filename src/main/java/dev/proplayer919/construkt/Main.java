@@ -39,7 +39,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 public class Main {
-    public static CombatFeatureSet modernVanilla = CombatFeatures.modernVanilla();
+    public final static CombatFeatureSet modernVanilla = CombatFeatures.modernVanilla();
 
     static void main(String[] args) {
         // Initialization
@@ -75,9 +75,7 @@ public class Main {
         }
 
         // Ensure DB is closed on shutdown
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            sqliteDb.close();
-        }, "Sqlite-Shutdown-Close"));
+        Runtime.getRuntime().addShutdownHook(new Thread(sqliteDb::close, "Sqlite-Shutdown-Close"));
 
         // Create hub instances
         int hubs = 2; // Number of hub instances to create

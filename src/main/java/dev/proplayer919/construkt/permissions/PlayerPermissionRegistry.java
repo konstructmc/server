@@ -17,9 +17,7 @@ public class PlayerPermissionRegistry {
         }
 
         // Close DB on shutdown
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            db.close();
-        }, "PlayerPermissionRegistry-DB-Close"));
+        Runtime.getRuntime().addShutdownHook(new Thread(db::close, "PlayerPermissionRegistry-DB-Close"));
     }
 
     public static void grantPermission(Player player, Permission permission) {

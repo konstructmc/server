@@ -1,7 +1,10 @@
 package dev.proplayer919.construkt.permissions;
 
+import lombok.Getter;
+
 import java.util.UUID;
 
+@Getter
 public class Permission {
     private final UUID uuid;
     private final String permissionNode;
@@ -9,13 +12,5 @@ public class Permission {
     public Permission(String permissionNode) {
         this.uuid = UUID.randomUUID();
         this.permissionNode = permissionNode;
-    }
-
-    public UUID getUuid() {
-        return uuid;
-    }
-
-    public String getPermissionNode() {
-        return permissionNode;
     }
 }
