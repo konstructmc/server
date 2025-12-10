@@ -31,11 +31,11 @@ public class MatchType {
         return center.withX(x).withZ(z);
     }
 
-    public Pos getSpawnPointForPlayer(int playerIndex) {
+    public Pos getSpawnPointForPlayer(int playerIndex, int playerAmount) {
         // Spread players out in a circle around the center spawn point
         Pos centerSpawn = new Pos(0.5, 40, 0.5);
 
-        Pos point = getPointOnCircle(centerSpawn, 20.0, playerIndex, maxPlayers);
+        Pos point = getPointOnCircle(centerSpawn, 20.0, playerIndex, playerAmount);
 
         // Compute yaw and pitch so the player looks at the center
         double dx = centerSpawn.x() - point.x();

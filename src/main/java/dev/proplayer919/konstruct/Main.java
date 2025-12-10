@@ -2,6 +2,7 @@ package dev.proplayer919.konstruct;
 
 import dev.proplayer919.konstruct.commands.HostCommand;
 import dev.proplayer919.konstruct.commands.JoinMatchCommand;
+import dev.proplayer919.konstruct.commands.LeaveMatchCommand;
 import dev.proplayer919.konstruct.commands.admin.*;
 import dev.proplayer919.konstruct.commands.HubCommand;
 import dev.proplayer919.konstruct.match.types.DeathmatchMatchType;
@@ -89,6 +90,7 @@ public class Main {
         UnbanCommand unbanCommand = new UnbanCommand();
         HostCommand hostCommand = new HostCommand();
         JoinMatchCommand joinMatchCommand = new JoinMatchCommand();
+        LeaveMatchCommand leaveMatchCommand = new LeaveMatchCommand();
 
         MinecraftServer.getCommandManager().register(giveCommand);
         MinecraftServer.getCommandManager().register(gameModeCommand);
@@ -100,6 +102,7 @@ public class Main {
         MinecraftServer.getCommandManager().register(unbanCommand);
         MinecraftServer.getCommandManager().register(hostCommand);
         MinecraftServer.getCommandManager().register(joinMatchCommand);
+        MinecraftServer.getCommandManager().register(leaveMatchCommand);
 
         // Register game types
         MatchTypeRegistry.registerMatchType(new DeathmatchMatchType());
@@ -133,10 +136,6 @@ public class Main {
                             .build())
                     .versionInfo(new Status.VersionInfo("1.21.10", 773)) // set some fake version info
                     .build());
-        });
-
-        globalEventHandler.addListener(PlayerDeathEvent.class, event -> {
-            event.setChatMessage(null);
         });
 
         globalEventHandler.addListener(AsyncPlayerConfigurationEvent.class, event -> {

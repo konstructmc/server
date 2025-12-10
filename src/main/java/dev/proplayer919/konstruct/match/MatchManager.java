@@ -4,7 +4,10 @@ import dev.proplayer919.konstruct.instance.GameInstanceData;
 import dev.proplayer919.konstruct.instance.HubInstanceData;
 import dev.proplayer919.konstruct.instance.HubInstanceRegistry;
 import dev.proplayer919.konstruct.instance.gameplayer.GamePlayerData;
+import dev.proplayer919.konstruct.instance.gameplayer.GamePlayerStatus;
 import dev.proplayer919.konstruct.messages.MatchMessages;
+import dev.proplayer919.konstruct.sidebar.SidebarData;
+import dev.proplayer919.konstruct.sidebar.SidebarRegistry;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
@@ -27,11 +30,41 @@ public class MatchManager {
         player.setGameMode(GameMode.ADVENTURE);
         player.teleport(gameInstanceData.getMatchType().getWaitingSpawn());
 
+        // Update sidebar
+        SidebarData sidebarData = SidebarRegistry.getSidebarByPlayerId(player.getUuid());
+        if (sidebarData != null) {
+            sidebarData.setInstanceId(gameInstanceData.getId());
+        }
+
         // Send a message to all players in the match that a new player has joined
         for (GamePlayerData pData : gameInstanceData.getPlayers()) {
             Player p = MinecraftServer.getConnectionManager().getOnlinePlayerByUuid(pData.getUuid());
             if (p != null) {
-                p.sendMessage(MatchMessages.createPlayerJoinedMessage(p.getUsername(), gameInstanceData.getPlayers().size(), gameInstanceData.getMatchType().getMaxPlayers()));
+                p.sendMessage(MatchMessages.createPlayerJoinedMessage(player.getUsername(), gameInstanceData.getPlayers().size(), gameInstanceData.getMatchType().getMaxPlayers()));
+            }
+        }
+    }
+
+    public static void playerLeaveMatch(GameInstanceData gameInstanceData, Player player) {
+        GamePlayerData playerData = gameInstanceData.getPlayers().stream()
+                .filter(p -> p.getUuid().equals(player.getUuid()))
+                .findFirst()
+                .orElse(null);
+
+        if (!playerData.isAlive()) {
+            return;
+        }
+
+        switch (gameInstanceData.getMatchStatus()) {
+            case WAITING -> {
+                gameInstanceData.getPlayers().remove(playerData);
+                gameInstanceData.sendMessageToAllPlayers(MatchMessages.createPlayerLeftMessage(player.getUsername(), gameInstanceData.getPlayers().size(), gameInstanceData.getMatchType().getMaxPlayers()));
+            }
+            case IN_PROGRESS -> {
+                if (playerData != null) {
+                    playerData.setStatus(GamePlayerStatus.DEAD);
+                    gameInstanceData.sendMessageToAllPlayers(MatchMessages.createPlayerDisconnectMessage(player.getUsername(), gameInstanceData.getAlivePlayers().size()));
+                }
             }
         }
     }

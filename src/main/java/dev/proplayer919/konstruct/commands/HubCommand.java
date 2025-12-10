@@ -6,6 +6,7 @@ import dev.proplayer919.konstruct.instance.HubInstanceRegistry;
 import dev.proplayer919.konstruct.messages.MessageType;
 import dev.proplayer919.konstruct.sidebar.SidebarData;
 import dev.proplayer919.konstruct.sidebar.SidebarRegistry;
+import dev.proplayer919.konstruct.instance.GameInstanceRegistry;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentType;
 import net.minestom.server.coordinate.Pos;
@@ -24,6 +25,12 @@ public class HubCommand extends Command {
         addSyntax((sender, context) -> {
             final String id = context.get(idArg);
             if (sender instanceof Player player) {
+                // Prevent using /hub while the player is inside a game instance
+                if (GameInstanceRegistry.getInstanceWithPlayer(player.getUuid()) != null) {
+                    MessagingHelper.sendMessage(player, MessageType.ERROR, "You cannot use /hub while you are in a game.");
+                    return;
+                }
+
                 HubInstanceData hubInstance = HubInstanceRegistry.getInstanceById(id);
                 if (hubInstance != null) {
                     // If the player is already in the requested hub, do nothing

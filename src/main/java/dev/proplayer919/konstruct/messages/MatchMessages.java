@@ -12,7 +12,7 @@ public final class MatchMessages {
     private MatchMessages() {}
 
     public static Component createMatchAdvertiseMessage(String instanceId, String hostName, String matchType, Date startTime) {
-        String formattedStartTime = DateStringUtility.formatDuration(startTime.getTime() - System.currentTimeMillis());
+        String formattedStartTime = DateStringUtility.formatDuration(startTime.getTime() - System.currentTimeMillis(), true);
         ClickEvent clickEvent = ClickEvent.runCommand("/join " + instanceId);
 
         return Component.text(hostName, NamedTextColor.GOLD)
@@ -42,14 +42,59 @@ public final class MatchMessages {
                 .append(Component.text(")", NamedTextColor.WHITE));
     }
 
-    public static Component createPlayerDisconnectMessage(String playerName) {
-        return Component.text(playerName, NamedTextColor.RED)
-                .append(Component.text(" disconnected.", NamedTextColor.WHITE));
+    public static Component createLastCountdownMessage(int secondsLeft) {
+        return Component.text("Match starting in ", NamedTextColor.YELLOW)
+                .append(Component.text(secondsLeft + " seconds!", NamedTextColor.GOLD));
     }
 
-    public static Component createPlayerEliminatedMessage(String playerName, int remainingPlayers) {
+    public static Component createMatchTooLittlePlayersMessage(int minPlayers) {
+        return Component.text("Match cannot start: at least ", NamedTextColor.RED)
+                .append(Component.text(minPlayers, NamedTextColor.GOLD))
+                .append(Component.text(" players are required. You will be transferred back to a hub.", NamedTextColor.RED));
+    }
+
+    public static Component createCountdownMessage(Date startTime, int currentPlayers, int minPlayers) {
+        long millisecondsLeft = startTime.getTime() - System.currentTimeMillis();
+        String formattedCountdown = DateStringUtility.formatDuration(millisecondsLeft, true);
+        Component message = Component.text("Match starting in ", NamedTextColor.YELLOW)
+                .append(Component.text(formattedCountdown + "!", NamedTextColor.GOLD));
+        int needed = Math.max(0, minPlayers - currentPlayers);
+        if (needed > 0) {
+            String playerWord = needed == 1 ? " player" : " players";
+            message = message.append(Component.text(" We need " + needed + playerWord + " before then to start the match!", NamedTextColor.RED));
+        }
+        return message;
+    }
+
+    public static Component createPlayerDisconnectMessage(String playerName, int remainingPlayers) {
         return Component.text(playerName, NamedTextColor.RED)
-                .append(Component.text(" was eliminated! ", NamedTextColor.WHITE))
+                .append(Component.text(" left the match and was eliminated. ", NamedTextColor.WHITE))
                 .append(Component.text(remainingPlayers + " players remaining.", NamedTextColor.YELLOW));
+    }
+
+    public static Component createPlayerVoidMessage(String playerName, int remainingPlayers) {
+        return Component.text(playerName, NamedTextColor.RED)
+                .append(Component.text(" fell into the abyss. ", NamedTextColor.WHITE))
+                .append(Component.text(remainingPlayers + " players remaining.", NamedTextColor.YELLOW));
+    }
+
+    public static Component createPlayerEliminatedMessage(String playerName, String killerName, int remainingPlayers) {
+        return Component.text(playerName, NamedTextColor.RED)
+                .append(Component.text(" was eliminated by ", NamedTextColor.WHITE))
+                .append(Component.text(killerName, NamedTextColor.GREEN))
+                .append(Component.text(". ", NamedTextColor.WHITE))
+                .append(Component.text(remainingPlayers + " players remaining.", NamedTextColor.YELLOW));
+    }
+
+    public static Component createKillerMessage(String playerName) {
+        return Component.text("☠ KILL ", NamedTextColor.RED)
+                .append(Component.text("on ", NamedTextColor.WHITE))
+                .append(Component.text(playerName, NamedTextColor.GOLD));
+    }
+
+    public static Component createWinnerMessage(String playerName) {
+        return Component.text("🏆 WINNER ", NamedTextColor.GOLD)
+                .append(Component.text("is ", NamedTextColor.WHITE))
+                .append(Component.text(playerName, NamedTextColor.GOLD));
     }
 }

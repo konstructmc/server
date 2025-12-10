@@ -7,6 +7,5 @@ public class Emojis {
     public static final String WARNING = "⚠";
     public static final String LIGHTNING = "⚡";
     public static final String LOCK = "🔒";
-    public static final String SWORD = "🗡";
     public static final String SPEAKER = "📢";
 }
