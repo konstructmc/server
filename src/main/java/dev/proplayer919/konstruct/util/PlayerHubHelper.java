@@ -40,5 +40,6 @@ public class PlayerHubHelper {
         player.setGameMode(GameMode.SURVIVAL);
         player.setHealth(20);
         player.getInventory().clear();
+        player.clearEffects();
     }
 }

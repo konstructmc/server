@@ -79,30 +79,51 @@ public class Main {
             HubInstanceRegistry.registerInstance(hubData);
         }
 
-        // Init commands
-        GiveCommand giveCommand = new GiveCommand();
-        GameModeCommand gameModeCommand = new GameModeCommand();
-        PermissionCommand permissionCommand = new PermissionCommand();
+        // Server commands
         HubCommand hubCommand = new HubCommand();
-        KickHubCommand kickHubCommand = new KickHubCommand();
-        KickCommand kickCommand = new KickCommand();
-        BanCommand banCommand = new BanCommand();
-        UnbanCommand unbanCommand = new UnbanCommand();
-        HostCommand hostCommand = new HostCommand();
-        JoinMatchCommand joinMatchCommand = new JoinMatchCommand();
-        LeaveMatchCommand leaveMatchCommand = new LeaveMatchCommand();
-
-        MinecraftServer.getCommandManager().register(giveCommand);
-        MinecraftServer.getCommandManager().register(gameModeCommand);
-        MinecraftServer.getCommandManager().register(permissionCommand);
         MinecraftServer.getCommandManager().register(hubCommand);
-        MinecraftServer.getCommandManager().register(kickHubCommand);
-        MinecraftServer.getCommandManager().register(kickCommand);
-        MinecraftServer.getCommandManager().register(banCommand);
-        MinecraftServer.getCommandManager().register(unbanCommand);
+
+        HostCommand hostCommand = new HostCommand();
         MinecraftServer.getCommandManager().register(hostCommand);
+
+        JoinMatchCommand joinMatchCommand = new JoinMatchCommand();
         MinecraftServer.getCommandManager().register(joinMatchCommand);
+
+        LeaveMatchCommand leaveMatchCommand = new LeaveMatchCommand();
         MinecraftServer.getCommandManager().register(leaveMatchCommand);
+
+        // Admin commands
+        GiveCommand giveCommand = new GiveCommand();
+        MinecraftServer.getCommandManager().register(giveCommand);
+
+        GameModeCommand gameModeCommand = new GameModeCommand();
+        MinecraftServer.getCommandManager().register(gameModeCommand);
+
+        PermissionCommand permissionCommand = new PermissionCommand();
+        MinecraftServer.getCommandManager().register(permissionCommand);
+
+        KickHubCommand kickHubCommand = new KickHubCommand();
+        MinecraftServer.getCommandManager().register(kickHubCommand);
+
+        KickCommand kickCommand = new KickCommand();
+        MinecraftServer.getCommandManager().register(kickCommand);
+
+        BanCommand banCommand = new BanCommand();
+        MinecraftServer.getCommandManager().register(banCommand);
+
+        UnbanCommand unbanCommand = new UnbanCommand();
+        MinecraftServer.getCommandManager().register(unbanCommand);
+
+        // Admin abuse commands
+        WinCommand winCommand = new WinCommand();
+        MinecraftServer.getCommandManager().register(winCommand);
+
+        KillCommand killCommand = new KillCommand();
+        MinecraftServer.getCommandManager().register(killCommand);
+
+        // Admin funny commands
+        SizeCommand sizeCommand = new SizeCommand();
+        MinecraftServer.getCommandManager().register(sizeCommand);
 
         // Register game types
         MatchTypeRegistry.registerMatchType(new DeathmatchMatchType());
