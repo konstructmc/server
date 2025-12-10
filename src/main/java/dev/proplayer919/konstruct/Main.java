@@ -222,7 +222,13 @@ public class Main {
         globalEventHandler.addListener(PlayerFlagEvent.class, event -> {
             final Player player = event.player();
 
-            MessagingHelper.sendMessage(player, MessageType.ANTICHEAT, "You have been flagged for " + event.checkName() + " (Certainty: " + (event.certainty() * 100) + "%)");
+            // Get all players with anticheat.notify permission
+            for (var staffId : PlayerPermissionRegistry.getPlayersWithPermission("anticheat.notify")) {
+                Player staffPlayer = MinecraftServer.getConnectionManager().getOnlinePlayerByUuid(staffId);
+                if (staffPlayer != null) {
+                    MessagingHelper.sendMessage(staffPlayer, MessageType.ANTICHEAT, "Player " + player.getUsername() + " flagged for " + event.checkName() + " (Certainty: " + (event.certainty() * 100) + "%)");
+                }
+            }
         });
 
         // Setup anticheat

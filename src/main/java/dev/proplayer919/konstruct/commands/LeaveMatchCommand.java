@@ -7,6 +7,7 @@ import dev.proplayer919.konstruct.instance.HubInstanceRegistry;
 import dev.proplayer919.konstruct.match.MatchManager;
 import dev.proplayer919.konstruct.messages.MessageType;
 import dev.proplayer919.konstruct.messages.MessagingHelper;
+import dev.proplayer919.konstruct.util.PlayerHubHelper;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentType;
 import net.minestom.server.coordinate.Pos;
@@ -27,17 +28,7 @@ public class LeaveMatchCommand extends Command {
                     // Remove the player from the match
                     MatchManager.playerLeaveMatch(gameInstanceData, player);
 
-                    // Find the hub with the least players and send the player there
-                    HubInstanceData hubInstanceData = HubInstanceRegistry.getInstanceWithLowestPlayers();
-                    if (hubInstanceData != null) {
-                        hubInstanceData.getPlayers().add(player);
-                        player.setInstance(hubInstanceData.getInstance());
-                        player.teleport(new Pos(0.5, 40, 0.5)); // Teleport to hub spawn point
-                        player.setGameMode(GameMode.SURVIVAL);
-                        MessagingHelper.sendMessage(player, MessageType.SERVER, "You have been returned to the hub.");
-                    } else {
-                        player.kick("No hub instance available. Please try reconnecting later.");
-                    }
+                    PlayerHubHelper.returnPlayerToHub(player);
                 } else {
                     MessagingHelper.sendMessage(player, MessageType.ERROR, "You are not currently in a game.");
                 }

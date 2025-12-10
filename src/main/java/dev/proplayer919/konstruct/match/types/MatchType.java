@@ -12,16 +12,14 @@ public class MatchType {
     private final int minPlayers;
     private final Pos spectatorSpawn;
     private final Pos waitingSpawn;
-    private final Instance instance;
 
-    public MatchType(String id, String name, int maxPlayers, int minPlayers, Pos spectatorSpawn, Pos waitingSpawn, Instance instance) {
+    public MatchType(String id, String name, int maxPlayers, int minPlayers, Pos spectatorSpawn, Pos waitingSpawn) {
         this.id = id;
         this.name = name;
         this.maxPlayers = maxPlayers;
         this.minPlayers = minPlayers;
         this.spectatorSpawn = spectatorSpawn;
         this.waitingSpawn = waitingSpawn;
-        this.instance = instance;
     }
 
     public static Pos getPointOnCircle(Pos center, double radius, int numerator, int denominator) {
@@ -45,6 +43,10 @@ public class MatchType {
         float pitch = (float) Math.toDegrees(Math.atan2(-dy, Math.sqrt(dx * dx + dz * dz)));
 
         return point.withYaw(yaw).withPitch(pitch);
+    }
+
+    public Instance getInstance() {
+        return null;
     }
 
 }

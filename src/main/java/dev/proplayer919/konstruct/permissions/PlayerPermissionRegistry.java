@@ -3,6 +3,8 @@ package dev.proplayer919.konstruct.permissions;
 import dev.proplayer919.konstruct.storage.SqliteDatabase;
 import net.minestom.server.entity.Player;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 
 public class PlayerPermissionRegistry {
@@ -43,6 +45,15 @@ public class PlayerPermissionRegistry {
         } catch (Throwable t) {
             t.printStackTrace();
             return false;
+        }
+    }
+
+    public static Collection<UUID> getPlayersWithPermission(String permissionNode) {
+        try {
+            return db.getPlayersWithPermissionSync(permissionNode);
+        } catch (Throwable t) {
+            t.printStackTrace();
+            return Collections.emptyList();
         }
     }
 

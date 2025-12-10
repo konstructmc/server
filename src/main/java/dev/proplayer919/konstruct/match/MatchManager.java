@@ -51,6 +51,7 @@ public class MatchManager {
                 .findFirst()
                 .orElse(null);
 
+        assert playerData != null;
         if (!playerData.isAlive()) {
             return;
         }
@@ -61,9 +62,11 @@ public class MatchManager {
                 gameInstanceData.sendMessageToAllPlayers(MatchMessages.createPlayerLeftMessage(player.getUsername(), gameInstanceData.getPlayers().size(), gameInstanceData.getMatchType().getMaxPlayers()));
             }
             case IN_PROGRESS -> {
-                if (playerData != null) {
-                    playerData.setStatus(GamePlayerStatus.DEAD);
-                    gameInstanceData.sendMessageToAllPlayers(MatchMessages.createPlayerDisconnectMessage(player.getUsername(), gameInstanceData.getAlivePlayers().size()));
+                playerData.setStatus(GamePlayerStatus.DEAD);
+                gameInstanceData.sendMessageToAllPlayers(MatchMessages.createPlayerDisconnectMessage(player.getUsername(), gameInstanceData.getAlivePlayers().size()));
+
+                if (gameInstanceData.getAlivePlayers().size() == 1) {
+                    gameInstanceData.winMatch(gameInstanceData.getAlivePlayers().iterator().next());
                 }
             }
         }

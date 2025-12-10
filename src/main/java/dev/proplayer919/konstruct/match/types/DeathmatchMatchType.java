@@ -10,10 +10,12 @@ public class DeathmatchMatchType extends MatchType {
         int minPlayers = 2;
         int maxPlayers = 2;
 
+        super("deathmatch", "Deathmatch", maxPlayers, minPlayers, new Pos(0.5, 60, 0.5), new Pos(0.5, 80, 0.5));
+    }
+
+    public Instance getInstance() {
         // Use the correct path to the anvil world folder inside the project
         String anvilPath = Path.of("data", "arenas", "deathmatch1").toString();
-        Instance instance = InstanceCreator.createInstanceFromAnvil(anvilPath, true);
-
-        super("deathmatch", "Deathmatch", maxPlayers, minPlayers, new Pos(0.5, 60, 0.5), new Pos(0.5, 80, 0.5), instance);
+        return InstanceCreator.createInstanceFromAnvil(anvilPath, true);
     }
 }

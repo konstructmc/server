@@ -207,6 +207,20 @@ public class SqliteDatabase {
         }
     }
 
+    public Collection<UUID> getPlayersWithPermissionSync(String permissionNode) {
+        try {
+            List<Map<String, Object>> rows = runAsyncQuery("SELECT player_uuid FROM player_permissions WHERE permission_node = ?", permissionNode).join();
+            Set<UUID> result = new HashSet<>();
+            for (Map<String, Object> row : rows) {
+                String uuidStr = (String) row.get("player_uuid");
+                result.add(UUID.fromString(uuidStr));
+            }
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void insertPlayerPermissionSync(UUID playerUuid, String permissionNode) {
         runAsyncUpdate("INSERT OR IGNORE INTO players(uuid) VALUES (?)", playerUuid.toString()).join();
         runAsyncUpdate("INSERT OR IGNORE INTO player_permissions(player_uuid, permission_node) VALUES (?, ?)", playerUuid.toString(), permissionNode).join();

@@ -7,6 +7,7 @@ import dev.proplayer919.konstruct.messages.MessageType;
 import dev.proplayer919.konstruct.sidebar.SidebarData;
 import dev.proplayer919.konstruct.sidebar.SidebarRegistry;
 import dev.proplayer919.konstruct.instance.GameInstanceRegistry;
+import dev.proplayer919.konstruct.util.PlayerHubHelper;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentType;
 import net.minestom.server.coordinate.Pos;
@@ -39,22 +40,7 @@ public class HubCommand extends Command {
                         return;
                     }
 
-                    // Find the player's current hub, if any, and remove them from it
-                    HubInstanceData currentHub = HubInstanceRegistry.getInstanceWithPlayer(player.getUuid());
-                    if (currentHub != null) {
-                        currentHub.getPlayers().remove(player);
-                    }
-
-                    // Update the player's sidebar
-                    SidebarData sidebarData = SidebarRegistry.getSidebarByPlayerId(player.getUuid());
-                    if (sidebarData != null) {
-                        sidebarData.setInstanceId(hubInstance.getId());
-                    }
-
-                    // Teleport the player to the new hub
-                    player.setInstance(hubInstance.getInstance());
-                    player.teleport(new Pos(0.5, 40, 0.5));
-                    hubInstance.getPlayers().add(player);
+                    PlayerHubHelper.movePlayerToHub(player, hubInstance);
                     MessagingHelper.sendMessage(player, MessageType.SERVER, "Joined " + id + ".");
                 } else {
                     MessagingHelper.sendMessage(player, MessageType.ERROR, "Hub with ID '" + id + "' does not exist.");

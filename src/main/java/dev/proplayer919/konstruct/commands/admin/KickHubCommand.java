@@ -5,6 +5,7 @@ import dev.proplayer919.konstruct.instance.HubInstanceData;
 import dev.proplayer919.konstruct.instance.HubInstanceRegistry;
 import dev.proplayer919.konstruct.messages.MessageType;
 import dev.proplayer919.konstruct.permissions.PlayerPermissionRegistry;
+import dev.proplayer919.konstruct.util.PlayerHubHelper;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentType;
@@ -36,10 +37,7 @@ public class KickHubCommand extends Command {
                         // Find another hub to send them to
                         HubInstanceData targetHub = HubInstanceRegistry.getInstanceWithLowestPlayersExcept(hubInstance);
                         if (targetHub != null) {
-                            p.setInstance(targetHub.getInstance());
-
-                            p.teleport(new Pos(0.5, 40, 0.5));
-                            targetHub.getPlayers().add(p);
+                            PlayerHubHelper.movePlayerToHub(player, targetHub);
                             MessagingHelper.sendMessage(p, MessageType.SERVER, "You have been kicked from " + id + " to " + targetHub.getId() + ".");
                         } else {
                             Component message = MessagingHelper.createMessage(MessageType.ERROR, "You have been kicked from " + id + " but no other hubs are available. Please try reconnecting later.");
