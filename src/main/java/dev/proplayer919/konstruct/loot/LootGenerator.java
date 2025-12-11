@@ -201,7 +201,7 @@ public class LootGenerator {
         t.add(Material.GOLDEN_CARROT, 6, 5, 14);
         t.add(Material.GOLDEN_APPLE, 4, 1, 4);
         t.add(Material.ENCHANTED_GOLDEN_APPLE, 1, 1, 1);
-        t.add(Material.TIPPED_ARROW, 5, 8, 20);
+        t.add(Material.SPECTRAL_ARROW, 5, 8, 20);
 
         return t;
     }
