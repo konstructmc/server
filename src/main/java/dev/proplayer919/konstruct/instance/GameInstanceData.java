@@ -10,6 +10,7 @@ import dev.proplayer919.konstruct.match.types.MatchType;
 import dev.proplayer919.konstruct.messages.MatchMessages;
 import dev.proplayer919.konstruct.messages.MessageType;
 import dev.proplayer919.konstruct.messages.MessagingHelper;
+import dev.proplayer919.konstruct.util.BoundsHelper;
 import dev.proplayer919.konstruct.util.PlayerHubHelper;
 import dev.proplayer919.konstruct.util.PlayerInventoryBlockRegistry;
 import io.github.togar2.pvp.events.EntityPreDeathEvent;
@@ -30,9 +31,7 @@ import net.minestom.server.entity.EntityType;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.inventory.InventoryCloseEvent;
-import net.minestom.server.event.player.PlayerBlockInteractEvent;
-import net.minestom.server.event.player.PlayerDisconnectEvent;
-import net.minestom.server.event.player.PlayerMoveEvent;
+import net.minestom.server.event.player.*;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.inventory.Inventory;
 
@@ -199,6 +198,34 @@ public class GameInstanceData extends InstanceData {
 
                 // Open the inventory for the player
                 event.getPlayer().openInventory(chestInventory);
+            }
+        });
+
+        this.getInstance().eventNode().addListener(PlayerBlockPlaceEvent.class, event -> {
+            if (matchStatus != MatchStatus.IN_PROGRESS) {
+                event.setCancelled(true);
+            }
+
+            // Check if it is within the arena type's bounds
+            boolean inBounds = BoundsHelper.isInBounds(event.getBlockPosition().asPos(), matchType.getBuildingBounds1(), matchType.getBuildingBounds2());
+
+            if (!inBounds) {
+                event.setCancelled(true);
+                MessagingHelper.sendMessage(event.getPlayer(), MessageType.PROTECT, "You cannot modify the arena outside of the bounds!");
+            }
+        });
+
+        this.getInstance().eventNode().addListener(PlayerBlockBreakEvent.class, event -> {
+            if (matchStatus != MatchStatus.IN_PROGRESS) {
+                event.setCancelled(true);
+            }
+
+            // Check if it is within the arena type's bounds
+            boolean inBounds = BoundsHelper.isInBounds(event.getBlockPosition().asPos(), matchType.getBuildingBounds1(), matchType.getBuildingBounds2());
+
+            if (!inBounds) {
+                event.setCancelled(true);
+                MessagingHelper.sendMessage(event.getPlayer(), MessageType.PROTECT, "You cannot modify the arena outside of the bounds!");
             }
         });
     }
