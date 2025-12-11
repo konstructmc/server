@@ -40,6 +40,13 @@ public class WinCommand extends Command {
                         .findFirst()
                         .orElse(null);
 
+                // Kill all other players and declare this player the winner
+                for (GamePlayerData gp : gameInstanceData.getAlivePlayers()) {
+                    if (!gp.getUuid().equals(player.getUuid())) {
+                        gameInstanceData.killPlayer(gp);
+                    }
+                }
+
                 if (gamePlayerData != null) {
                     gameInstanceData.winMatch(gamePlayerData);
                 } else {

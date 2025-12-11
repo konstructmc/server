@@ -51,7 +51,17 @@ public class KillCommand extends Command {
                         .findFirst()
                         .orElse(null);
 
+                if (targetPlayerData == null) {
+                    MessagingHelper.sendMessage(sender, MessageType.ERROR, "Player '" + username + "' is not in your game or is already dead.");
+                    return;
+                }
+
                 gameInstanceData.killPlayer(targetPlayerData);
+
+                if (gameInstanceData.getAlivePlayers().size() == 1) {
+                    GamePlayerData gamePlayerData = gameInstanceData.getAlivePlayers().iterator().next();
+                    gameInstanceData.winMatch(gamePlayerData);
+                }
             } else {
                 MessagingHelper.sendMessage(sender, MessageType.ERROR, "Only players can use this command.");
             }
