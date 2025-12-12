@@ -162,11 +162,11 @@ public class GameInstanceData extends InstanceData {
                     if (player.getPosition().y() < 0) {
                         killPlayer(playerData);
 
+                        sendMessageToAllPlayers(MatchMessages.createPlayerVoidMessage(player.getUsername(), getAlivePlayers().size() - 1));
+
                         if (getAlivePlayers().size() == 1) {
                             GamePlayerData winnerData = getAlivePlayers().iterator().next();
                             winMatch(winnerData);
-                        } else {
-                            sendMessageToAllPlayers(MatchMessages.createPlayerVoidMessage(player.getUsername(), getAlivePlayers().size() - 1));
                         }
                     }
                 }
