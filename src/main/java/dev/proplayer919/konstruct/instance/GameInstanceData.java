@@ -122,13 +122,9 @@ public class GameInstanceData extends InstanceData {
                             // This attack would be fatal, so trigger the elimination message (but the actual death will be handled in EntityPreDeathEvent)
                             if (getAlivePlayers().size() == 1) {
                                 // Find the killer's player data
-                                GamePlayerData killerData = this.players.stream()
+                                this.players.stream()
                                         .filter(p -> p.getUuid().equals(killerPlayer.getUuid()))
-                                        .findFirst()
-                                        .orElse(null);
-                                if (killerData != null) {
-                                    winMatch(killerData);
-                                }
+                                        .findFirst().ifPresent(this::winMatch);
                             } else {
                                 sendMessageToAllPlayers(MatchMessages.createPlayerEliminatedMessage(player.getUsername(), killerPlayer.getUsername(), getAlivePlayers().size() - 1));
                             }

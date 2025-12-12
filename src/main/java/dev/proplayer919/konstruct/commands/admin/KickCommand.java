@@ -18,11 +18,7 @@ public class KickCommand extends Command {
 
         setDefaultExecutor((sender, context) -> MessagingHelper.sendMessage(sender, MessageType.ADMIN, "Usage: /kick <player> [message]"));
 
-        var playerArg = ArgumentType.String("player").setSuggestionCallback((sender, context, suggestion) -> {
-            MinecraftServer.getConnectionManager().getOnlinePlayers().forEach(player -> {
-                suggestion.addEntry(new SuggestionEntry(player.getUsername()));
-            });
-        });
+        var playerArg = ArgumentType.String("player").setSuggestionCallback((sender, context, suggestion) -> MinecraftServer.getConnectionManager().getOnlinePlayers().forEach(player -> suggestion.addEntry(new SuggestionEntry(player.getUsername()))));
         var messageArg = ArgumentType.StringArray("message").setDefaultValue(new String[0]);
 
         addSyntax((sender, context) -> {

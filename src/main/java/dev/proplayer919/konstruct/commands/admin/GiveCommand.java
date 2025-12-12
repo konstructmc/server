@@ -21,11 +21,7 @@ public class GiveCommand extends Command {
         // Executed if no other executor can be used
         setDefaultExecutor((sender, context) -> MessagingHelper.sendMessage(sender, MessageType.ADMIN, "Usage: /give <target> <item> [amount]"));
 
-        var targetArg = ArgumentType.String("target").setSuggestionCallback((sender, context, suggestion) -> {
-            MinecraftServer.getConnectionManager().getOnlinePlayers().forEach(player -> {
-                suggestion.addEntry(new SuggestionEntry(player.getUsername()));
-            });
-        });
+        var targetArg = ArgumentType.String("target").setSuggestionCallback((sender, context, suggestion) -> MinecraftServer.getConnectionManager().getOnlinePlayers().forEach(player -> suggestion.addEntry(new SuggestionEntry(player.getUsername()))));
         var itemIdArg = ArgumentType.String("item-id");
         var amountArg = ArgumentType.Integer("amount").setDefaultValue(1);
 

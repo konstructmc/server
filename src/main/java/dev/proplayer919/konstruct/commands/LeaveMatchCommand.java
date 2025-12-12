@@ -2,16 +2,11 @@ package dev.proplayer919.konstruct.commands;
 
 import dev.proplayer919.konstruct.instance.GameInstanceData;
 import dev.proplayer919.konstruct.instance.GameInstanceRegistry;
-import dev.proplayer919.konstruct.instance.HubInstanceData;
-import dev.proplayer919.konstruct.instance.HubInstanceRegistry;
 import dev.proplayer919.konstruct.match.MatchManager;
 import dev.proplayer919.konstruct.messages.MessageType;
 import dev.proplayer919.konstruct.messages.MessagingHelper;
 import dev.proplayer919.konstruct.util.PlayerHubHelper;
 import net.minestom.server.command.builder.Command;
-import net.minestom.server.command.builder.arguments.ArgumentType;
-import net.minestom.server.coordinate.Pos;
-import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
 
 public class LeaveMatchCommand extends Command {

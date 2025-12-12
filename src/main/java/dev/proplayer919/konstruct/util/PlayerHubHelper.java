@@ -2,8 +2,6 @@ package dev.proplayer919.konstruct.util;
 
 import dev.proplayer919.konstruct.instance.HubInstanceData;
 import dev.proplayer919.konstruct.instance.HubInstanceRegistry;
-import dev.proplayer919.konstruct.messages.MessageType;
-import dev.proplayer919.konstruct.messages.MessagingHelper;
 import dev.proplayer919.konstruct.sidebar.SidebarData;
 import dev.proplayer919.konstruct.sidebar.SidebarRegistry;
 import net.minestom.server.coordinate.Pos;

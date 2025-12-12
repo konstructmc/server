@@ -249,7 +249,7 @@ public class SqliteDatabase {
         try {
             List<Map<String, Object>> rows = runAsyncQuery("SELECT reason, expires_at FROM bans WHERE player_uuid = ? LIMIT 1", playerUuid.toString()).join();
             if (rows.isEmpty()) return null;
-            Map<String, Object> row = rows.get(0);
+            Map<String, Object> row = rows.getFirst();
             Object expiresObj = row.get("expires_at");
             if (expiresObj != null) {
                 long expiresAt = ((Number) expiresObj).longValue();

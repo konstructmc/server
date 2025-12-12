@@ -12,10 +12,7 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.entity.attribute.Attribute;
 import net.minestom.server.entity.attribute.AttributeModifier;
 import net.minestom.server.entity.attribute.AttributeOperation;
-import net.minestom.server.item.ItemStack;
-import net.minestom.server.item.Material;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class SizeCommand extends Command {
@@ -32,11 +29,7 @@ public class SizeCommand extends Command {
                 return player.getUsername();
             }
             return null;
-        }).setSuggestionCallback((sender, context, suggestion) -> {
-            MinecraftServer.getConnectionManager().getOnlinePlayers().forEach(player -> {
-                suggestion.addEntry(new SuggestionEntry(player.getUsername()));
-            });
-        });
+        }).setSuggestionCallback((sender, context, suggestion) -> MinecraftServer.getConnectionManager().getOnlinePlayers().forEach(player -> suggestion.addEntry(new SuggestionEntry(player.getUsername()))));
 
         addSyntax((sender, context) -> {
             final double size = context.get(sizeArg);

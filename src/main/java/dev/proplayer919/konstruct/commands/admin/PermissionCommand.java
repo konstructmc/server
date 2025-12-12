@@ -19,11 +19,7 @@ public class PermissionCommand extends Command {
         // Executed if no other executor can be used
         setDefaultExecutor((sender, context) -> MessagingHelper.sendMessage(sender, MessageType.ADMIN, "Usage: /permission <username/UUID> <permission> <true/false>"));
 
-        var usernameArg = ArgumentType.String("username").setSuggestionCallback((sender, context, suggestion) -> {
-            MinecraftServer.getConnectionManager().getOnlinePlayers().forEach(player -> {
-                suggestion.addEntry(new SuggestionEntry(player.getUsername()));
-            });
-        });
+        var usernameArg = ArgumentType.String("username").setSuggestionCallback((sender, context, suggestion) -> MinecraftServer.getConnectionManager().getOnlinePlayers().forEach(player -> suggestion.addEntry(new SuggestionEntry(player.getUsername()))));
         var permissionArg = ArgumentType.String("permission");
         var valueArg = ArgumentType.Boolean("value");
 

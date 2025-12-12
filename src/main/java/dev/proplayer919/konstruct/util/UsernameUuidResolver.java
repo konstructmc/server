@@ -58,9 +58,6 @@ public final class UsernameUuidResolver {
         }
     }
 
-    private static class CacheEntry {
-        final UUID uuid;
-        final long timestamp;
-        CacheEntry(UUID uuid, long timestamp) { this.uuid = uuid; this.timestamp = timestamp; }
+    private record CacheEntry(UUID uuid, long timestamp) {
     }
 }

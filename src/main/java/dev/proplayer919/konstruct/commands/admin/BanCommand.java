@@ -29,16 +29,13 @@ public class BanCommand extends Command {
         Runtime.getRuntime().addShutdownHook(new Thread(db::close, "BanCommand-DB-Close"));
     }
 
+    @SuppressWarnings("DataFlowIssue")
     public BanCommand() {
         super("ban");
 
         setDefaultExecutor((sender, context) -> MessagingHelper.sendMessage(sender, MessageType.ADMIN, "Usage: /ban <player> [[duration] <message>]"));
 
-        var playerArg = ArgumentType.String("player").setSuggestionCallback((sender, context, suggestion) -> {
-            MinecraftServer.getConnectionManager().getOnlinePlayers().forEach(player -> {
-                suggestion.addEntry(new SuggestionEntry(player.getUsername()));
-            });
-        });
+        var playerArg = ArgumentType.String("player").setSuggestionCallback((sender, context, suggestion) -> MinecraftServer.getConnectionManager().getOnlinePlayers().forEach(player -> suggestion.addEntry(new SuggestionEntry(player.getUsername()))));
         var argsArg = ArgumentType.StringArray("args").setDefaultValue(new String[0]);
 
         addSyntax((sender, context) -> {
@@ -108,7 +105,7 @@ public class BanCommand extends Command {
                 target.kick(comp);
             }
 
-            MessagingHelper.sendMessage(sender, MessageType.ADMIN, "Banned " + targetName + (expiresAt != null ? " until " + new java.util.Date(expiresAt).toString() : " permanently") + ". Reason: " + reason);
+            MessagingHelper.sendMessage(sender, MessageType.ADMIN, "Banned " + targetName + (expiresAt != null ? " until " + new java.util.Date(expiresAt) : " permanently") + ". Reason: " + reason);
         }, playerArg, argsArg);
     }
 }

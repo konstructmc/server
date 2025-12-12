@@ -20,19 +20,14 @@ public class LootGenerator {
         return generateForTier(tier);
     }
 
-    private static class LootEntry {
-        final Material material;
-        final int weight;
-        final int minCount;
-        final int maxCount;
-
-        LootEntry(Material material, int weight, int minCount, int maxCount) {
-            this.material = material;
-            this.weight = Math.max(0, weight);
-            this.minCount = Math.max(1, minCount);
-            this.maxCount = Math.max(this.minCount, maxCount);
+    private record LootEntry(Material material, int weight, int minCount, int maxCount) {
+            private LootEntry(Material material, int weight, int minCount, int maxCount) {
+                this.material = material;
+                this.weight = Math.max(0, weight);
+                this.minCount = Math.max(1, minCount);
+                this.maxCount = Math.max(this.minCount, maxCount);
+            }
         }
-    }
 
     private static class LootTier {
         final String title;
@@ -47,6 +42,7 @@ public class LootGenerator {
             this.maxItems = maxItems;
         }
 
+        @SuppressWarnings("UnusedReturnValue")
         LootTier add(Material mat, int weight) { return add(mat, weight, 1, 1); }
         LootTier add(Material mat, int weight, int minCount, int maxCount) {
             LootEntry e = new LootEntry(mat, weight, minCount, maxCount);
@@ -63,7 +59,7 @@ public class LootGenerator {
                 cumulative += e.weight;
                 if (r < cumulative) return e;
             }
-            return entries.get(entries.size() - 1);
+            return entries.getLast();
         }
     }
 

@@ -6,15 +6,10 @@ import dev.proplayer919.konstruct.permissions.PlayerPermissionRegistry;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.Command;
-import net.minestom.server.command.builder.CommandContext;
 import net.minestom.server.command.builder.arguments.ArgumentType;
-import net.minestom.server.command.builder.suggestion.Suggestion;
-import net.minestom.server.command.builder.suggestion.SuggestionCallback;
 import net.minestom.server.command.builder.suggestion.SuggestionEntry;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
-
-import java.util.function.Supplier;
 
 public class GameModeCommand extends Command {
 
@@ -35,11 +30,7 @@ public class GameModeCommand extends Command {
                 return player.getUsername();
             }
             return null;
-        }).setSuggestionCallback((sender, context, suggestion) -> {
-            MinecraftServer.getConnectionManager().getOnlinePlayers().forEach(player -> {
-                suggestion.addEntry(new SuggestionEntry(player.getUsername()));
-            });
-        });
+        }).setSuggestionCallback((sender, context, suggestion) -> MinecraftServer.getConnectionManager().getOnlinePlayers().forEach(player -> suggestion.addEntry(new SuggestionEntry(player.getUsername()))));
 
         addSyntax((sender, context) -> {
             final String gamemode = context.get(gamemodeArg);

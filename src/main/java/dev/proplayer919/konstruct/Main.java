@@ -20,7 +20,6 @@ import io.github.togar2.pvp.feature.CombatFeatureSet;
 import io.github.togar2.pvp.feature.CombatFeatures;
 import net.bridgesplash.sidebar.SidebarAPI;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.mangolise.anticheat.MangoAC;
 import net.mangolise.anticheat.events.PlayerFlagEvent;
 import net.minestom.server.Auth;
@@ -55,7 +54,7 @@ public class Main {
         // Initialization
         boolean online = false;
 
-        MinecraftServer minecraftServer = null;
+        MinecraftServer minecraftServer;
         if (online) {
             minecraftServer = MinecraftServer.init(new Auth.Online());
         } else {
@@ -204,7 +203,10 @@ public class Main {
             Instance playerInstance = player.getInstance();
             String playerInstanceId = "unknown";
             if (HubInstanceRegistry.getInstanceByInstance(playerInstance) != null) {
-                playerInstanceId = HubInstanceRegistry.getInstanceByInstance(playerInstance).getId();
+                HubInstanceData hubInstanceData = HubInstanceRegistry.getInstanceByInstance(playerInstance);
+                if (hubInstanceData != null) {
+                    playerInstanceId = hubInstanceData.getId();
+                }
             }
 
             // Setup sidebar for the player

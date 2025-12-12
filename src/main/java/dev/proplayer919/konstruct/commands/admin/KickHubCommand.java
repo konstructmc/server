@@ -10,7 +10,6 @@ import net.kyori.adventure.text.Component;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentType;
 import net.minestom.server.command.builder.suggestion.SuggestionEntry;
-import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
 
 public class KickHubCommand extends Command {
