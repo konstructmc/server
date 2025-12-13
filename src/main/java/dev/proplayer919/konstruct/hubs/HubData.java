@@ -1,4 +1,4 @@
-package dev.proplayer919.konstruct.instance;
+package dev.proplayer919.konstruct.hubs;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -9,11 +9,15 @@ import java.util.Collection;
 import java.util.HashSet;
 
 @Getter
-public class HubInstanceData extends InstanceData {
+public class HubData {
     @Setter
     private Collection<Player> players = new HashSet<>();
 
-    public HubInstanceData(Instance instance, String id) {
-        super(InstanceType.HUB, instance, id);
+    private final Instance instance;
+    private final String id;
+
+    public HubData(Instance instance, String id) {
+        this.instance = instance;
+        this.id = id;
     }
 }

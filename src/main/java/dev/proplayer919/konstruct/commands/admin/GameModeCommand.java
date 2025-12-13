@@ -1,5 +1,6 @@
 package dev.proplayer919.konstruct.commands.admin;
 
+import dev.proplayer919.konstruct.CustomPlayer;
 import dev.proplayer919.konstruct.messages.MessagingHelper;
 import dev.proplayer919.konstruct.messages.MessageType;
 import dev.proplayer919.konstruct.permissions.PlayerPermissionRegistry;
@@ -26,7 +27,7 @@ public class GameModeCommand extends Command {
             suggestion.addEntry(new SuggestionEntry("spectator"));
         });
         var targetArg = ArgumentType.String("target").setDefaultValue((CommandSender sender) -> {
-            if (sender instanceof Player player) {
+            if (sender instanceof CustomPlayer player) {
                 return player.getUsername();
             }
             return null;
@@ -36,7 +37,7 @@ public class GameModeCommand extends Command {
             final String gamemode = context.get(gamemodeArg);
             final String target = context.get(targetArg);
 
-            if (sender instanceof Player player) {
+            if (sender instanceof CustomPlayer player) {
                 if (!PlayerPermissionRegistry.hasPermission(player, "command.gamemode")) {
                     MessagingHelper.sendMessage(sender, MessageType.PERMISSION, "You do not have permission to use this command.");
                     return;

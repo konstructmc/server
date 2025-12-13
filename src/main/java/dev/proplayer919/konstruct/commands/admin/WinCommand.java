@@ -1,8 +1,9 @@
 package dev.proplayer919.konstruct.commands.admin;
 
-import dev.proplayer919.konstruct.instance.GameInstanceData;
-import dev.proplayer919.konstruct.instance.GameInstanceRegistry;
-import dev.proplayer919.konstruct.instance.gameplayer.GamePlayerData;
+import dev.proplayer919.konstruct.CustomPlayer;
+import dev.proplayer919.konstruct.matches.MatchData;
+import dev.proplayer919.konstruct.matches.MatchManager;
+import dev.proplayer919.konstruct.matches.MatchesRegistry;
 import dev.proplayer919.konstruct.messages.MessageType;
 import dev.proplayer919.konstruct.messages.MessagingHelper;
 import dev.proplayer919.konstruct.permissions.PlayerPermissionRegistry;
@@ -21,19 +22,16 @@ public class WinCommand extends Command {
         setDefaultExecutor((sender, context) -> MessagingHelper.sendMessage(sender, MessageType.ADMIN, "Usage: /win [target]"));
 
         var targetArg = ArgumentType.String("target").setDefaultValue((sender) -> {
-            if (sender instanceof Player player) {
+            if (sender instanceof CustomPlayer player) {
                 return player.getUsername();
             }
             return null;
         }).setSuggestionCallback((sender, context, suggestion) -> {
-            if (sender instanceof Player player) {
-                GameInstanceData gameInstanceData = GameInstanceRegistry.getInstanceWithPlayer(player.getUuid());
-                if (gameInstanceData != null) {
-                    for (GamePlayerData gp : gameInstanceData.getAlivePlayers()) {
-                        Player targetPlayer = MinecraftServer.getConnectionManager().getOnlinePlayerByUuid(gp.getUuid());
-                        if (targetPlayer != null) {
-                            suggestion.addEntry(new SuggestionEntry(targetPlayer.getUsername()));
-                        }
+            if (sender instanceof CustomPlayer player) {
+                MatchData matchData = MatchesRegistry.getMatchWithPlayer(player);
+                if (matchData != null) {
+                    for (CustomPlayer customPlayer : matchData.getPlayers()) {
+                        suggestion.addEntry(new SuggestionEntry(customPlayer.getUsername()));
                     }
                 }
             }
@@ -42,41 +40,37 @@ public class WinCommand extends Command {
         addSyntax((sender, context) -> {
             final String target = context.get(targetArg);
 
-            if (sender instanceof Player player) {
+            if (sender instanceof CustomPlayer player) {
                 if (!PlayerPermissionRegistry.hasPermission(player, "command.win")) {
                     MessagingHelper.sendMessage(sender, MessageType.PERMISSION, "You do not have permission to use this command.");
                     return;
                 }
 
-                GameInstanceData gameInstanceData = GameInstanceRegistry.getInstanceWithPlayer(player.getUuid());
-                if (gameInstanceData == null) {
-                    MessagingHelper.sendMessage(sender, MessageType.ERROR, "You are not currently in a game.");
+                MatchData matchData = MatchesRegistry.getMatchWithPlayer(player);
+                if (matchData == null) {
+                    MessagingHelper.sendMessage(sender, MessageType.ERROR, "You are not currently in a match.");
                     return;
                 }
 
-                Player targetPlayer = MinecraftServer.getConnectionManager().findOnlinePlayer(target);
+                CustomPlayer targetPlayer = (CustomPlayer) MinecraftServer.getConnectionManager().findOnlinePlayer(target);
                 if (targetPlayer == null) {
                     MessagingHelper.sendMessage(sender, MessageType.ERROR, "Player with username '" + target + "' is not online.");
                     return;
                 }
 
-                GamePlayerData gamePlayerData = gameInstanceData.getAlivePlayers().stream()
-                        .filter(gp -> gp.getUuid().equals(targetPlayer.getUuid()))
-                        .findFirst()
-                        .orElse(null);
+                if (!matchData.isPlayerAlive(targetPlayer)) {
+                    MessagingHelper.sendMessage(sender, MessageType.ERROR, "Player '" + target + "' is not in your match or is already dead.");
+                    return;
+                }
 
                 // Kill all other players and declare this player the winner
-                for (GamePlayerData gp : gameInstanceData.getAlivePlayers()) {
-                    if (!gp.getUuid().equals(targetPlayer.getUuid())) {
-                        gameInstanceData.killPlayer(gp);
+                for (CustomPlayer customPlayer : matchData.getPlayers()) {
+                    if (customPlayer != targetPlayer && matchData.isPlayerAlive(customPlayer)) {
+                        MatchManager.killPlayer(matchData, customPlayer);
                     }
                 }
 
-                if (gamePlayerData != null) {
-                    gameInstanceData.winMatch(gamePlayerData);
-                } else {
-                    MessagingHelper.sendMessage(sender, MessageType.ERROR, "Player '" + target + "' is not in your game or is already dead.");
-                }
+                MatchManager.winMatch(matchData, targetPlayer);
             } else {
                 MessagingHelper.sendMessage(sender, MessageType.ERROR, "Only players can use this command.");
             }

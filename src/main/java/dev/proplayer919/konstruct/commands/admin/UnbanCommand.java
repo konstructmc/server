@@ -1,5 +1,6 @@
 package dev.proplayer919.konstruct.commands.admin;
 
+import dev.proplayer919.konstruct.CustomPlayer;
 import dev.proplayer919.konstruct.messages.MessagingHelper;
 import dev.proplayer919.konstruct.messages.MessageType;
 import dev.proplayer919.konstruct.permissions.PlayerPermissionRegistry;
@@ -34,8 +35,8 @@ public class UnbanCommand extends Command {
 
         addSyntax((sender, context) -> {
             // Only check permissions for actual player senders. Allow console/non-player to run the command.
-            if (sender instanceof Player) {
-                if (!PlayerPermissionRegistry.hasPermission((Player) sender, "command.unban")) {
+            if (sender instanceof CustomPlayer player) {
+                if (!PlayerPermissionRegistry.hasPermission(player, "command.unban")) {
                     MessagingHelper.sendMessage(sender, MessageType.PERMISSION, "You do not have permission to use this command.");
                     return;
                 }

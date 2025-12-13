@@ -1,5 +1,6 @@
 package dev.proplayer919.konstruct.permissions;
 
+import dev.proplayer919.konstruct.CustomPlayer;
 import dev.proplayer919.konstruct.storage.SqliteDatabase;
 import net.minestom.server.entity.Player;
 
@@ -22,7 +23,7 @@ public class PlayerPermissionRegistry {
     }
 
     // Grant by Permission node string
-    public static void grantPermission(Player player, String permissionNode) {
+    public static void grantPermission(CustomPlayer player, String permissionNode) {
         grantPermission(player.getUuid(), permissionNode);
     }
 
@@ -35,7 +36,7 @@ public class PlayerPermissionRegistry {
     }
 
     // Check permission by node string (supports wildcard logic implemented in SqliteDatabase)
-    public static boolean hasPermission(Player player, String permissionNode) {
+    public static boolean hasPermission(CustomPlayer player, String permissionNode) {
         return hasPermission(player.getUuid(), permissionNode);
     }
 
@@ -58,7 +59,7 @@ public class PlayerPermissionRegistry {
     }
 
     // Revoke by permission node string
-    public static void revokePermission(Player player, String permissionNode) {
+    public static void revokePermission(CustomPlayer player, String permissionNode) {
         revokePermission(player.getUuid(), permissionNode);
     }
 

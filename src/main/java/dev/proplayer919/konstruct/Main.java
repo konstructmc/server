@@ -5,15 +5,13 @@ import dev.proplayer919.konstruct.commands.JoinMatchCommand;
 import dev.proplayer919.konstruct.commands.LeaveMatchCommand;
 import dev.proplayer919.konstruct.commands.admin.*;
 import dev.proplayer919.konstruct.commands.HubCommand;
-import dev.proplayer919.konstruct.match.types.DeathmatchMatchType;
-import dev.proplayer919.konstruct.match.types.MatchTypeRegistry;
+import dev.proplayer919.konstruct.instance.InstanceLoader;
 import dev.proplayer919.konstruct.messages.MessageType;
 import dev.proplayer919.konstruct.messages.PunishmentMessages;
 import dev.proplayer919.konstruct.permissions.PlayerPermissionRegistry;
 import dev.proplayer919.konstruct.sidebar.SidebarData;
-import dev.proplayer919.konstruct.instance.HubInstanceData;
-import dev.proplayer919.konstruct.instance.HubInstanceRegistry;
-import dev.proplayer919.konstruct.generators.InstanceCreator;
+import dev.proplayer919.konstruct.hubs.HubData;
+import dev.proplayer919.konstruct.hubs.HubRegistry;
 import dev.proplayer919.konstruct.sidebar.SidebarRegistry;
 import io.github.togar2.pvp.MinestomPvP;
 import io.github.togar2.pvp.feature.CombatFeatureSet;
@@ -30,7 +28,6 @@ import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.player.*;
 import net.minestom.server.event.server.ServerListPingEvent;
 import net.minestom.server.instance.*;
-import net.minestom.server.instance.block.Block;
 import net.minestom.server.coordinate.Pos;
 import dev.proplayer919.konstruct.messages.MessagingHelper;
 import dev.proplayer919.konstruct.storage.SqliteDatabase;
@@ -52,14 +49,7 @@ public class Main {
 
     static void main(String[] args) {
         // Initialization
-        boolean online = false;
-
-        MinecraftServer minecraftServer;
-        if (online) {
-            minecraftServer = MinecraftServer.init(new Auth.Online());
-        } else {
-            minecraftServer = MinecraftServer.init();
-        }
+        MinecraftServer minecraftServer = MinecraftServer.init(new Auth.Online());
 
         MinestomPvP.init();
 
@@ -80,9 +70,9 @@ public class Main {
         // Create hub instances
         int hubs = 5; // Number of hub instances to create
         for (int i = 0; i < hubs; i++) {
-            InstanceContainer hubInstance = InstanceCreator.createSimpleInstanceContainer(Block.GRASS_BLOCK, Block.GOLD_BLOCK, false);
-            HubInstanceData hubData = new HubInstanceData(hubInstance, "hub-" + (i + 1));
-            HubInstanceRegistry.registerInstance(hubData);
+            InstanceContainer hubInstance = InstanceLoader.loadAnvilInstance("data/lobby", false);
+            HubData hubData = new HubData(hubInstance, "hub-" + (i + 1));
+            HubRegistry.registerInstance(hubData);
         }
 
         // Server commands
@@ -131,8 +121,8 @@ public class Main {
         SizeCommand sizeCommand = new SizeCommand();
         MinecraftServer.getCommandManager().register(sizeCommand);
 
-        // Register game types
-        MatchTypeRegistry.registerMatchType(new DeathmatchMatchType());
+        // Custom player provider
+        MinecraftServer.getConnectionManager().setPlayerProvider(CustomPlayer::new);
 
         // Player spawning
         GlobalEventHandler globalEventHandler = MinecraftServer.getGlobalEventHandler();
@@ -166,19 +156,19 @@ public class Main {
         });
 
         globalEventHandler.addListener(AsyncPlayerConfigurationEvent.class, event -> {
-            final Player player = event.getPlayer();
+            final CustomPlayer player = (CustomPlayer) event.getPlayer();
 
             // Pick a hub instance with the least players
-            HubInstanceData hubInstanceData = HubInstanceRegistry.getInstanceWithLowestPlayers();
-            hubInstanceData.getPlayers().add(player);
-            Instance hubInstance = hubInstanceData.getInstance();
+            HubData hubData = HubRegistry.getInstanceWithLowestPlayers();
+            hubData.getPlayers().add(player);
+            Instance hubInstance = hubData.getInstance();
             event.setSpawningInstance(hubInstance);
             player.setRespawnPoint(new Pos(0.5, 40, 0.5));
             player.setGameMode(GameMode.SURVIVAL);
         });
 
         globalEventHandler.addListener(PlayerSpawnEvent.class, event -> {
-            final Player player = event.getPlayer();
+            final CustomPlayer player = (CustomPlayer) event.getPlayer();
 
             // Check if player is banned
             try {
@@ -202,10 +192,10 @@ public class Main {
             // Find the instance the player is in
             Instance playerInstance = player.getInstance();
             String playerInstanceId = "unknown";
-            if (HubInstanceRegistry.getInstanceByInstance(playerInstance) != null) {
-                HubInstanceData hubInstanceData = HubInstanceRegistry.getInstanceByInstance(playerInstance);
-                if (hubInstanceData != null) {
-                    playerInstanceId = hubInstanceData.getId();
+            if (HubRegistry.getInstanceByInstance(playerInstance) != null) {
+                HubData hubData = HubRegistry.getInstanceByInstance(playerInstance);
+                if (hubData != null) {
+                    playerInstanceId = hubData.getId();
                 }
             }
 
@@ -219,7 +209,7 @@ public class Main {
         });
 
         globalEventHandler.addListener(PlayerBlockBreakEvent.class, event -> {
-            final Player player = event.getPlayer();
+            final CustomPlayer player = (CustomPlayer) event.getPlayer();
 
             Instance playerInstance = player.getInstance();
             if (playerInstance == null) {
@@ -230,14 +220,14 @@ public class Main {
                 return;
             }
 
-            if (HubInstanceRegistry.getInstanceWithPlayer(player.getUuid()) != null) {
+            if (HubRegistry.getInstanceWithPlayer(player.getUuid()) != null) {
                 MessagingHelper.sendMessage(player, MessageType.PROTECT, "You cannot break blocks in a hub");
                 event.setCancelled(true);
             }
         });
 
         globalEventHandler.addListener(PlayerBlockPlaceEvent.class, event -> {
-            final Player player = event.getPlayer();
+            final CustomPlayer player = (CustomPlayer) event.getPlayer();
 
             Instance playerInstance = player.getInstance();
             if (playerInstance == null) {
@@ -248,14 +238,14 @@ public class Main {
                 return;
             }
 
-            if (HubInstanceRegistry.getInstanceWithPlayer(player.getUuid()) != null) {
+            if (HubRegistry.getInstanceWithPlayer(player.getUuid()) != null) {
                 MessagingHelper.sendMessage(player, MessageType.PROTECT, "You cannot break blocks in a hub");
                 event.setCancelled(true);
             }
         });
 
         globalEventHandler.addListener(PlayerFlagEvent.class, event -> {
-            final Player player = event.player();
+            final CustomPlayer player = (CustomPlayer) event.player();
 
             // Get all players with anticheat.notify permission
             for (var staffId : PlayerPermissionRegistry.getPlayersWithPermission("anticheat.notify")) {

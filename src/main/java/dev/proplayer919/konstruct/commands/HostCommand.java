@@ -1,16 +1,14 @@
 package dev.proplayer919.konstruct.commands;
 
-import dev.proplayer919.konstruct.instance.GameInstanceData;
-import dev.proplayer919.konstruct.instance.GameInstanceRegistry;
-import dev.proplayer919.konstruct.match.MatchManager;
-import dev.proplayer919.konstruct.match.types.MatchType;
-import dev.proplayer919.konstruct.match.types.MatchTypeRegistry;
+import dev.proplayer919.konstruct.CustomPlayer;
+import dev.proplayer919.konstruct.instance.InstanceLoader;
+import dev.proplayer919.konstruct.matches.MatchData;
+import dev.proplayer919.konstruct.matches.MatchManager;
+import dev.proplayer919.konstruct.matches.MatchesRegistry;
 import dev.proplayer919.konstruct.messages.MessagingHelper;
 import dev.proplayer919.konstruct.messages.MessageType;
 import net.minestom.server.command.builder.Command;
-import net.minestom.server.command.builder.arguments.ArgumentType;
-import net.minestom.server.command.builder.suggestion.SuggestionEntry;
-import net.minestom.server.entity.Player;
+import net.minestom.server.instance.Instance;
 
 public class HostCommand extends Command {
 
@@ -18,31 +16,17 @@ public class HostCommand extends Command {
         super("host", "hostmatch", "hostgame");
 
         // Executed if no other executor can be used
-        setDefaultExecutor((sender, context) -> MessagingHelper.sendMessage(sender, MessageType.SERVER, "Usage: /host <id>"));
-
-        var idArg = ArgumentType.String("id").setSuggestionCallback((sender, context, suggestion) -> {
-            for (MatchType matchType : MatchTypeRegistry.getAllMatchTypes().values()) {
-                suggestion.addEntry(new SuggestionEntry(matchType.getId()));
-            }
-        });
-
-        addSyntax((sender, context) -> {
-            final String id = context.get(idArg);
-            if (sender instanceof Player player) {
-                // Check if the MatchType exists
-                MatchType matchType = MatchTypeRegistry.getMatchTypeById(id);
-                if (matchType != null) {
-                    String instanceId = GameInstanceRegistry.getNextInstanceId();
-                    GameInstanceData gameInstanceData = new GameInstanceData(instanceId, player.getUuid(), matchType);
-                    GameInstanceRegistry.registerInstance(gameInstanceData);
-
-                    MatchManager.spawnPlayerIntoMatch(gameInstanceData, player);
-                } else {
-                    MessagingHelper.sendMessage(player, MessageType.ERROR, "Match type with ID '" + id + "' does not exist.");
-                }
+        setDefaultExecutor((sender, context) -> {
+            if (sender instanceof CustomPlayer player) {
+                Instance lobbyInstance = InstanceLoader.loadAnvilInstance("data/lobby", false);
+                Instance matchInstance = InstanceLoader.loadAnvilInstance("data/arenas/deathmatch1", true);
+                MatchData matchData = new MatchData(player, lobbyInstance, matchInstance);
+                MatchesRegistry.registerMatch(matchData);
+                MatchManager.setupMatch(matchData);
+                MatchManager.spawnPlayerIntoMatch(matchData, player);
             } else {
                 MessagingHelper.sendMessage(sender, MessageType.ERROR, "Only players can use this command.");
             }
-        }, idArg);
+        });
     }
 }

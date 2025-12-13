@@ -1,5 +1,6 @@
 package dev.proplayer919.konstruct.commands.admin;
 
+import dev.proplayer919.konstruct.CustomPlayer;
 import dev.proplayer919.konstruct.messages.MessageType;
 import dev.proplayer919.konstruct.messages.MessagingHelper;
 import dev.proplayer919.konstruct.permissions.PlayerPermissionRegistry;
@@ -25,7 +26,7 @@ public class SizeCommand extends Command {
 
         var sizeArg = ArgumentType.Double("size");
         var targetArg = ArgumentType.String("target").setDefaultValue((CommandSender sender) -> {
-            if (sender instanceof Player player) {
+            if (sender instanceof CustomPlayer player) {
                 return player.getUsername();
             }
             return null;
@@ -34,7 +35,7 @@ public class SizeCommand extends Command {
         addSyntax((sender, context) -> {
             final double size = context.get(sizeArg);
             final String target = context.get(targetArg);
-            if (sender instanceof Player player) {
+            if (sender instanceof CustomPlayer player) {
                 if (!PlayerPermissionRegistry.hasPermission(player, "command.size")) {
                     MessagingHelper.sendMessage(sender, MessageType.PERMISSION, "You do not have permission to use this command.");
                     return;

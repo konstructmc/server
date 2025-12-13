@@ -1,5 +1,6 @@
 package dev.proplayer919.konstruct.commands.admin;
 
+import dev.proplayer919.konstruct.CustomPlayer;
 import dev.proplayer919.konstruct.messages.PunishmentMessages;
 import dev.proplayer919.konstruct.messages.MessagingHelper;
 import dev.proplayer919.konstruct.messages.MessageType;
@@ -40,9 +41,9 @@ public class BanCommand extends Command {
 
         addSyntax((sender, context) -> {
             // Only check permissions for actual player senders. Allow console/non-player to run the command.
-            if (sender instanceof Player) {
-                if (!PlayerPermissionRegistry.hasPermission((Player) sender, "command.ban")) {
-                    MessagingHelper.sendMessage(sender, MessageType.PERMISSION, "You do not have permission to use this command.");
+            if (sender instanceof CustomPlayer player) {
+                if (!PlayerPermissionRegistry.hasPermission(player, "command.ban")) {
+                    MessagingHelper.sendMessage(player, MessageType.PERMISSION, "You do not have permission to use this command.");
                     return;
                 }
             }
@@ -84,7 +85,7 @@ public class BanCommand extends Command {
             try {
                 if (target != null) {
                     // Online: ban by UUID
-                    db.insertBanSync(targetUuid, sender instanceof Player ? ((Player) sender).getUuid().toString() : null, expiresAt, reason);
+                    db.insertBanSync(targetUuid, sender instanceof CustomPlayer ? ((CustomPlayer) sender).getUuid().toString() : null, expiresAt, reason);
                 } else {
                     // Offline: require resolving username -> uuid via Mojang API
                     UUID offlineUuid = UsernameUuidResolver.resolveUuid(targetName);
@@ -92,7 +93,7 @@ public class BanCommand extends Command {
                         MessagingHelper.sendMessage(sender, MessageType.ERROR, "Failed to resolve username to UUID; cannot ban offline player. Ensure the username is correct and Mojang API is reachable.");
                         return;
                     }
-                    db.insertBanSync(offlineUuid, sender instanceof Player ? ((Player) sender).getUuid().toString() : null, expiresAt, reason);
+                    db.insertBanSync(offlineUuid, sender instanceof CustomPlayer ? ((CustomPlayer) sender).getUuid().toString() : null, expiresAt, reason);
                 }
             } catch (Throwable t) {
                 t.printStackTrace();

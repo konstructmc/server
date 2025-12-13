@@ -1,5 +1,6 @@
 package dev.proplayer919.konstruct.commands.admin;
 
+import dev.proplayer919.konstruct.CustomPlayer;
 import dev.proplayer919.konstruct.messages.MessagingHelper;
 import dev.proplayer919.konstruct.messages.MessageType;
 import dev.proplayer919.konstruct.permissions.PlayerPermissionRegistry;
@@ -28,7 +29,7 @@ public class PermissionCommand extends Command {
             final String permissionNode = context.get(permissionArg);
             final boolean value = context.get(valueArg);
 
-            if (sender instanceof Player player) {
+            if (sender instanceof CustomPlayer player) {
                 if (!PlayerPermissionRegistry.hasPermission(player, "command.permission")) {
                     MessagingHelper.sendMessage(sender, MessageType.PERMISSION, "You do not have permission to use this command.");
                     return;
@@ -58,7 +59,7 @@ public class PermissionCommand extends Command {
                     MessagingHelper.sendMessage(sender, MessageType.ADMIN, "Revoked permission " + permissionNode + " from UUID " + username);
                 }
             } else {
-                Player targetPlayer = MinecraftServer.getConnectionManager().findOnlinePlayer(username);
+                CustomPlayer targetPlayer = (CustomPlayer) MinecraftServer.getConnectionManager().findOnlinePlayer(username);
                 if (targetPlayer == null) {
                     MessagingHelper.sendMessage(sender, MessageType.ERROR, "Player " + username + " is not online.");
                     return;

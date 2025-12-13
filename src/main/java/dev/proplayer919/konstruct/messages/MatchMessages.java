@@ -7,18 +7,17 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 
 import java.util.Date;
+import java.util.UUID;
 
 public final class MatchMessages {
     private MatchMessages() {}
 
-    public static Component createMatchAdvertiseMessage(String instanceId, String hostName, String matchType, Date startTime) {
+    public static Component createMatchAdvertiseMessage(UUID matchUUID, String hostName, Date startTime) {
         String formattedStartTime = DateStringUtility.formatDuration(startTime.getTime() - System.currentTimeMillis(), true);
-        ClickEvent clickEvent = ClickEvent.runCommand("/join " + instanceId);
+        ClickEvent clickEvent = ClickEvent.runCommand("/join " + matchUUID.toString());
 
         return Component.text(hostName, NamedTextColor.GOLD)
-                .append(Component.text(" is hosting a ", NamedTextColor.WHITE))
-                .append(Component.text(matchType, NamedTextColor.AQUA))
-                .append(Component.text(", starting in ", NamedTextColor.WHITE))
+                .append(Component.text(" is hosting a match, starting in ", NamedTextColor.WHITE))
                 .append(Component.text(formattedStartTime, NamedTextColor.GREEN))
                 .append(Component.text("! ", NamedTextColor.WHITE))
                 .append(Component.text("JOIN", NamedTextColor.YELLOW).decorate(TextDecoration.BOLD).clickEvent(clickEvent));
@@ -58,6 +57,17 @@ public final class MatchMessages {
         String formattedCountdown = DateStringUtility.formatDuration(millisecondsLeft, true);
         Component message = Component.text("Match starting in ", NamedTextColor.YELLOW)
                 .append(Component.text(formattedCountdown + "!", NamedTextColor.GOLD));
+        int needed = Math.max(0, minPlayers - currentPlayers);
+        if (needed > 0) {
+            String playerWord = needed == 1 ? " player" : " players";
+            message = message.append(Component.text(" We need " + needed + playerWord + " before then to start the match!", NamedTextColor.RED));
+        }
+        return message;
+    }
+
+    public static Component createPreMatchCountdownMessage(int secondsLeft, int currentPlayers, int minPlayers) {
+        Component message = Component.text("Match starting in ", NamedTextColor.YELLOW)
+                .append(Component.text(secondsLeft + " seconds!", NamedTextColor.GOLD));
         int needed = Math.max(0, minPlayers - currentPlayers);
         if (needed > 0) {
             String playerWord = needed == 1 ? " player" : " players";

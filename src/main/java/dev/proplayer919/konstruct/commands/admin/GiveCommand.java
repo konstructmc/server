@@ -1,5 +1,6 @@
 package dev.proplayer919.konstruct.commands.admin;
 
+import dev.proplayer919.konstruct.CustomPlayer;
 import dev.proplayer919.konstruct.messages.MessagingHelper;
 import dev.proplayer919.konstruct.messages.MessageType;
 import dev.proplayer919.konstruct.permissions.PlayerPermissionRegistry;
@@ -29,7 +30,7 @@ public class GiveCommand extends Command {
             final String targetName = context.get(targetArg);
             final String itemId = context.get(itemIdArg);
             final int amount = context.get(amountArg);
-            if (sender instanceof Player player) {
+            if (sender instanceof CustomPlayer player) {
                 if (!PlayerPermissionRegistry.hasPermission(player, "command.gamemode")) {
                     MessagingHelper.sendMessage(sender, MessageType.PERMISSION, "You do not have permission to use this command.");
                     return;
