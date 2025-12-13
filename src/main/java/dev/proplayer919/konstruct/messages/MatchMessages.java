@@ -65,15 +65,9 @@ public final class MatchMessages {
         return message;
     }
 
-    public static Component createPreMatchCountdownMessage(int secondsLeft, int currentPlayers, int minPlayers) {
-        Component message = Component.text("Match starting in ", NamedTextColor.YELLOW)
+    public static Component createPreMatchCountdownMessage(int secondsLeft) {
+        return Component.text("Match starting in ", NamedTextColor.YELLOW)
                 .append(Component.text(secondsLeft + " seconds!", NamedTextColor.GOLD));
-        int needed = Math.max(0, minPlayers - currentPlayers);
-        if (needed > 0) {
-            String playerWord = needed == 1 ? " player" : " players";
-            message = message.append(Component.text(" We need " + needed + playerWord + " before then to start the match!", NamedTextColor.RED));
-        }
-        return message;
     }
 
     public static Component createPlayerDisconnectMessage(String playerName, int remainingPlayers) {
@@ -103,7 +97,7 @@ public final class MatchMessages {
     }
 
     public static Component createWinnerMessage(String playerName) {
-        return Component.text("🏆 WINNER ", NamedTextColor.GOLD)
+        return Component.text("⭐ WINNER ", NamedTextColor.GOLD)
                 .append(Component.text("is ", NamedTextColor.WHITE))
                 .append(Component.text(playerName, NamedTextColor.GOLD));
     }

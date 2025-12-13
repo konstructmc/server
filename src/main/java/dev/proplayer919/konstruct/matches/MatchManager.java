@@ -207,7 +207,7 @@ public class MatchManager {
         new Thread(() -> {
             int countdown = 5;
             while (countdown > 0) {
-                Component message = MatchMessages.createPreMatchCountdownMessage(countdown, matchData.getPlayerCount(), matchData.getMinPlayers());
+                Component message = MatchMessages.createPreMatchCountdownMessage(countdown);
                 MessagingHelper.sendMessage(matchData.getPlayers(), message);
 
                 try {
