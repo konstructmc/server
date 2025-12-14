@@ -7,16 +7,12 @@ import dev.proplayer919.konstruct.instance.InstanceLoader;
 import dev.proplayer919.konstruct.messages.MessageType;
 import dev.proplayer919.konstruct.messages.MessagingHelper;
 import dev.proplayer919.konstruct.permissions.PlayerPermissionRegistry;
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentType;
 import net.minestom.server.command.builder.suggestion.SuggestionEntry;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.GameMode;
-import net.minestom.server.entity.Player;
 import net.minestom.server.instance.Instance;
-import net.minestom.server.item.ItemStack;
-import net.minestom.server.item.Material;
 
 import java.io.File;
 import java.nio.file.Path;
