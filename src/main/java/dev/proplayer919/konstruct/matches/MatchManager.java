@@ -90,6 +90,26 @@ public class MatchManager {
         matchData.getMatchInstance().eventNode().addListener(EntityPreDeathEvent.class, event -> {
             // Handle player death
             event.setCancelled(true);
+
+            if (event.getEntity() instanceof CustomPlayer player) {
+                if (matchData.getPlayerAttackers().containsKey(player)) {
+                    CustomPlayer killer = matchData.getPlayerAttackers().get(player);
+
+                    killPlayer(matchData, player);
+
+                    MessagingHelper.sendMessage(matchData.getPlayers(), MatchMessages.createPlayerEliminatedMessage(player.getUsername(), killer.getUsername(), matchData.getAlivePlayerCount() - 1));
+
+                    if (matchData.getAlivePlayerCount() == 1) {
+                        winMatch(matchData, matchData.getAlivePlayers().iterator().next());
+                    }
+
+                    Component killerMessage = MatchMessages.createKillerMessage(player.getUsername());
+                    killer.sendActionBar(killerMessage);
+
+                    Sound killerSound = Sound.sound(Key.key("minecraft:entity.player.levelup"), Sound.Source.AMBIENT, 1.0f, 1.0f);
+                    killer.playSound(killerSound);
+                }
+            }
         });
 
         matchData.getMatchInstance().eventNode().addListener(FinalAttackEvent.class, event -> {
@@ -102,25 +122,9 @@ public class MatchManager {
             Entity target = event.getTarget();
             if (target instanceof CustomPlayer player) {
                 if (player.isAlive()) {
-                    double finalDamage = event.getBaseDamage() + event.getEnchantsExtraDamage();
-                    if (finalDamage >= player.getHealth()) {
-                        Entity killer = event.getEntity();
-                        if (killer instanceof CustomPlayer killerPlayer) {
-                            killPlayer(matchData, player);
-
-                            MessagingHelper.sendMessage(matchData.getPlayers(), MatchMessages.createPlayerEliminatedMessage(player.getUsername(), killerPlayer.getUsername(), matchData.getAlivePlayerCount() - 1));
-
-                            if (matchData.getAlivePlayerCount() == 1) {
-                                winMatch(matchData, matchData.getAlivePlayers().iterator().next());
-                            }
-
-                            Component killerMessage = MatchMessages.createKillerMessage(player.getUsername());
-                            killerPlayer.sendActionBar(killerMessage);
-
-                            Sound killerSound = Sound.sound(Key.key("minecraft:entity.player.levelup"), Sound.Source.AMBIENT, 1.0f, 1.0f);
-                            killerPlayer.playSound(killerSound);
-                        }
-                    }
+                    // Set the player's attacker
+                    matchData.getPlayerAttackers().remove(player);
+                    matchData.getPlayerAttackers().put(player, player);
                 }
             }
         });

@@ -8,10 +8,7 @@ import lombok.Setter;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.instance.Instance;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -22,15 +19,17 @@ public class MatchData {
     private final UUID hostUUID;
     private final String hostUsername;
 
-    private final Collection<CustomPlayer> players;
+    private final Collection<CustomPlayer> players = new ArrayList<>();
     private final Instance lobbyInstance;
     private final Instance matchInstance;
 
-    @Setter
-    private MatchStatus status;
+    private final Map<CustomPlayer, CustomPlayer> playerAttackers = new HashMap<>();
 
-    private final ChestLootRegistry chestLootRegistry;
-    private final PlayerInventoryBlockRegistry inventoryBlockRegistry;
+    @Setter
+    private MatchStatus status = MatchStatus.WAITING;
+
+    private final ChestLootRegistry chestLootRegistry = new ChestLootRegistry();
+    private final PlayerInventoryBlockRegistry inventoryBlockRegistry =  new PlayerInventoryBlockRegistry();
     private final Date startTime = new Date(System.currentTimeMillis() + 300000); // Default to 5 minutes from now
 
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -48,14 +47,8 @@ public class MatchData {
         this.hostUUID = host.getUuid();
         this.hostUsername = host.getUsername();
 
-        this.players = new ArrayList<>();
         this.lobbyInstance = lobbyInstance;
         this.matchInstance = matchInstance;
-
-        this.status = MatchStatus.WAITING;
-
-        this.chestLootRegistry = new ChestLootRegistry();
-        this.inventoryBlockRegistry = new PlayerInventoryBlockRegistry();
     }
 
     public boolean isPlayerAlive(CustomPlayer player) {
