@@ -7,15 +7,19 @@ import dev.proplayer919.konstruct.instance.InstanceLoader;
 import dev.proplayer919.konstruct.messages.MessageType;
 import dev.proplayer919.konstruct.messages.MessagingHelper;
 import dev.proplayer919.konstruct.permissions.PlayerPermissionRegistry;
+import dev.proplayer919.konstruct.sidebar.SidebarData;
+import dev.proplayer919.konstruct.sidebar.SidebarRegistry;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentType;
 import net.minestom.server.command.builder.suggestion.SuggestionEntry;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.GameMode;
+import net.minestom.server.entity.Player;
 import net.minestom.server.instance.Instance;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.Objects;
 
 public class EditorCommand extends Command {
@@ -66,10 +70,15 @@ public class EditorCommand extends Command {
                 EditorSession editorSession = new EditorSession(mapInstance, player);
                 EditorSessionRegistry.addSession(editorSession);
 
-                player.setInstance(mapInstance);
-                player.teleport(new Pos(0.5, 50, 0.5));
+                player.setInstance(mapInstance, new Pos(0.5, 50, 0.5));
                 player.setGameMode(GameMode.CREATIVE);
                 player.setFlying(true);
+
+                // Update sidebar
+                SidebarData sidebarData = SidebarRegistry.getSidebarByPlayerId(player.getUuid());
+                if (sidebarData != null) {
+                    sidebarData.setInstanceId("In Editor");
+                }
             } else {
                 MessagingHelper.sendMessage(sender, MessageType.ERROR, "Only players can use this command.");
             }

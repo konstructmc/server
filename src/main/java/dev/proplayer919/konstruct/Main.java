@@ -52,7 +52,7 @@ public class Main {
 
     static void main() {
         // Initialization
-        MinecraftServer minecraftServer = MinecraftServer.init(new Auth.Online());
+        MinecraftServer minecraftServer = MinecraftServer.init();
 
         MinestomPvP.init();
 
@@ -129,6 +129,9 @@ public class Main {
 
         SaveEditsCommand saveEditsCommand = new SaveEditsCommand();
         MinecraftServer.getCommandManager().register(saveEditsCommand);
+
+        JoinEditorSessionCommand joinEditorSessionCommand = new JoinEditorSessionCommand();
+        MinecraftServer.getCommandManager().register(joinEditorSessionCommand);
 
         // Admin abuse commands
         WinCommand winCommand = new WinCommand();
@@ -272,7 +275,17 @@ public class Main {
                 return;
             }
 
-            // Find any ItemStack in the player's inventory that matches the picked block
+            // Find any item in the player's hotbar that matches the picked block
+            for (int slot = 0; slot < 9; slot++) {
+                ItemStack itemStack = player.getInventory().getItemStack(slot);
+                Block itemBlock = itemStack.material().block();
+                if (itemBlock != null && itemBlock.compare(block)) {
+                    // Swap the player's selected slot to the slot of the picked block
+                    player.getInventory().changeHeld(player, slot, slot);
+                }
+            }
+
+            // Find any item in the player's inventory that matches the picked block
             boolean foundInInventory = false;
             for (int slot = 0; slot < player.getInventory().getSize(); slot++) {
                 ItemStack itemStack = player.getInventory().getItemStack(slot);

@@ -404,11 +404,11 @@ public class MatchManager {
 
         Instance lobbyInstance = matchData.getLobbyInstance();
 
-        player.setInstance(lobbyInstance);
+        player.setInstance(lobbyInstance, matchData.getLobbySpawn());
         player.setEnableRespawnScreen(false);
         player.setRespawnPoint(matchData.getSpectatorSpawn());
         player.setGameMode(GameMode.ADVENTURE);
-        player.teleport(matchData.getLobbySpawn());
+
         PlayerHubHelper.resetPlayerAttributes(player);
 
         // Update sidebar

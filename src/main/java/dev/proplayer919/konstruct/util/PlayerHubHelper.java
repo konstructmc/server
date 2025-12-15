@@ -48,7 +48,7 @@ public class PlayerHubHelper {
             });
         });
 
-        player.setHealth((float) player.getAttribute(Attribute.MAX_HEALTH).getValue());
+        player.setHealth(20);
         player.setAdditionalHearts(0);
 
         player.setFood(20);

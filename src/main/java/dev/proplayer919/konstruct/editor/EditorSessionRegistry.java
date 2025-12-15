@@ -1,5 +1,6 @@
 package dev.proplayer919.konstruct.editor;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -17,5 +18,9 @@ public class EditorSessionRegistry {
 
     public static EditorSession getSession(UUID playerUuid) {
         return sessions.get(playerUuid);
+    }
+
+    public static Collection<UUID> getPlayers() {
+        return sessions.keySet();
     }
 }
