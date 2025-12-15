@@ -108,6 +108,9 @@ public class Main {
         GameModeCommand gameModeCommand = new GameModeCommand();
         MinecraftServer.getCommandManager().register(gameModeCommand);
 
+        FlyCommand flyCommand = new FlyCommand();
+        MinecraftServer.getCommandManager().register(flyCommand);
+
         PermissionCommand permissionCommand = new PermissionCommand();
         MinecraftServer.getCommandManager().register(permissionCommand);
 
