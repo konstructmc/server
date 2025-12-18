@@ -43,11 +43,17 @@ public class JoinEditorSessionCommand extends Command {
                     return;
                 }
 
+                Player targetPlayer = MinecraftServer.getConnectionManager().getOnlinePlayerByUsername(username);
+                if (targetPlayer == null) {
+                    MessagingHelper.sendMessage(player, MessageType.ERROR, "Player with username '" + username + "' is not online.");
+                    return;
+                }
+
                 // Load the map
-                EditorSession editorSession = EditorSessionRegistry.getSession(player.getUuid());
+                EditorSession editorSession = EditorSessionRegistry.getSession(targetPlayer.getUuid());
 
                 if (editorSession == null) {
-                    MessagingHelper.sendMessage(player, MessageType.ERROR, "No session found for player " + player.getUsername());
+                    MessagingHelper.sendMessage(player, MessageType.ERROR, "No session found for player " + targetPlayer.getUsername());
                     return;
                 }
 

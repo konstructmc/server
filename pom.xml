@@ -63,12 +63,6 @@
         </dependency>
 
         <dependency>
-            <groupId>dev.lu15</groupId>
-            <artifactId>simple-voice-chat-minestom</artifactId>
-            <version>0.1.0-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
             <groupId>net.bridgesplash</groupId>
             <artifactId>sidebar-api</artifactId>
             <version>0.0.4</version>

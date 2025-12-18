@@ -48,7 +48,7 @@ import java.nio.file.Path;
 public class Main {
     public final static CombatFeatureSet modernVanilla = CombatFeatures.modernVanilla();
 
-    static void main() {
+    static void main(String[] args) {
         // Initialization
         MinecraftServer minecraftServer = MinecraftServer.init(new Auth.Online());
 
@@ -353,7 +353,14 @@ public class Main {
         ac.start();
 
         // Start the server on port 25565
-        minecraftServer.start("0.0.0.0", 25565);
+        int port = 25565;
+        if (args.length >= 1) {
+            try {
+                port = Integer.parseInt(args[0]);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        minecraftServer.start("0.0.0.0", port);
 
         // Start a console input thread that executes typed commands as the console sender
         Thread consoleThread = getConsoleThread();
