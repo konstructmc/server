@@ -2,6 +2,7 @@ package dev.proplayer919.konstruct.matches;
 
 import dev.proplayer919.konstruct.CustomPlayer;
 import dev.proplayer919.konstruct.loot.ChestLootRegistry;
+import dev.proplayer919.konstruct.matches.modifiers.Modifier;
 import dev.proplayer919.konstruct.util.PlayerInventoryBlockRegistry;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,6 +29,8 @@ public class MatchData {
 
     @Setter
     private MatchStatus status = MatchStatus.WAITING;
+
+    private final Collection<Modifier> activeModifiers = new ArrayList<>();
 
     private final ChestLootRegistry chestLootRegistry = new ChestLootRegistry();
     private final PlayerInventoryBlockRegistry inventoryBlockRegistry =  new PlayerInventoryBlockRegistry();
@@ -104,5 +107,8 @@ public class MatchData {
         this.players.remove(player);
     }
 
-
+    public void addModifier(Modifier modifier) {
+        this.activeModifiers.add(modifier);
+        modifier.applyEffect(this);
+    }
 }

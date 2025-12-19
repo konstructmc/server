@@ -6,6 +6,7 @@ import dev.proplayer919.konstruct.bot.UsernameGenerator;
 import dev.proplayer919.konstruct.hubs.HubData;
 import dev.proplayer919.konstruct.hubs.HubRegistry;
 import dev.proplayer919.konstruct.loot.ChestIdentifier;
+import dev.proplayer919.konstruct.matches.modifiers.ThunderModifier;
 import dev.proplayer919.konstruct.messages.MatchMessages;
 import dev.proplayer919.konstruct.messages.MessageType;
 import dev.proplayer919.konstruct.messages.MessagingHelper;
@@ -262,6 +263,8 @@ public class MatchManager {
                 player.getInventory().addItemStack(event.getItemStack());
             }
         });
+
+        matchData.addModifier(new ThunderModifier());
     }
 
     public static void startPreMatchCountdown(MatchData matchData) {
