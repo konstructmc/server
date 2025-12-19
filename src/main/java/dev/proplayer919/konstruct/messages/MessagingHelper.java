@@ -2,11 +2,14 @@ package dev.proplayer919.konstruct.messages;
 
 import dev.proplayer919.konstruct.Constants;
 import dev.proplayer919.konstruct.CustomPlayer;
+import dev.proplayer919.konstruct.matches.MatchPlayer;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 public final class MessagingHelper {
@@ -21,9 +24,19 @@ public final class MessagingHelper {
         }
     }
 
-    public static void sendMessage(Collection<CustomPlayer> audiences, Component message) {
-        for (Audience audience : audiences) {
-            audience.sendMessage(message);
+    public static void sendMessage(Collection<MatchPlayer> players, Component message) {
+        for (MatchPlayer player : players) {
+            if (player instanceof Audience audience) {
+                audience.sendMessage(message);
+            }
+        }
+    }
+
+    public static void sendSound(Collection<MatchPlayer> players, Sound sound) {
+        for (MatchPlayer player : players) {
+            if (player instanceof Audience audience) {
+                audience.playSound(sound);
+            }
         }
     }
 
@@ -31,19 +44,11 @@ public final class MessagingHelper {
         audience.sendActionBar(message);
     }
 
-    public static void sendActionBar(Collection<CustomPlayer> audience, Component message) {
-        for (Audience a : audience) {
-            a.sendActionBar(message);
-        }
-    }
-
-    public static void sendSound(Audience audience, Sound sound) {
-        audience.playSound(sound);
-    }
-
-    public static void sendSound(Collection<CustomPlayer> audience, Sound sound) {
-        for (Audience a : audience) {
-            a.playSound(sound);
+    public static void sendActionBar(Collection<MatchPlayer> players, Component message) {
+        for (MatchPlayer player : players) {
+            if (player instanceof Audience audience) {
+                audience.sendActionBar(message);
+            }
         }
     }
 

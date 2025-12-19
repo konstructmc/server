@@ -3,6 +3,7 @@ package dev.proplayer919.konstruct.commands.admin;
 import dev.proplayer919.konstruct.CustomPlayer;
 import dev.proplayer919.konstruct.matches.MatchData;
 import dev.proplayer919.konstruct.matches.MatchManager;
+import dev.proplayer919.konstruct.matches.MatchPlayer;
 import dev.proplayer919.konstruct.matches.MatchesRegistry;
 import dev.proplayer919.konstruct.messages.MessageType;
 import dev.proplayer919.konstruct.messages.MessagingHelper;
@@ -24,7 +25,7 @@ public class KillCommand extends Command {
             if (sender instanceof CustomPlayer player) {
                 MatchData matchData = MatchesRegistry.getMatchWithPlayer(player);
                 if (matchData != null) {
-                    for (CustomPlayer customPlayer : matchData.getPlayers()) {
+                    for (MatchPlayer customPlayer : matchData.getPlayers()) {
                         suggestion.addEntry(new SuggestionEntry(customPlayer.getUsername()));
                     }
                 }
@@ -45,7 +46,7 @@ public class KillCommand extends Command {
                     return;
                 }
 
-                CustomPlayer targetPlayer = (CustomPlayer) MinecraftServer.getConnectionManager().findOnlinePlayer(username);
+                MatchPlayer targetPlayer = matchData.getPlayers().stream().filter(p -> p.getUsername().equalsIgnoreCase(username)).findFirst().orElse(null);
                 if (targetPlayer == null) {
                     MessagingHelper.sendMessage(player, MessageType.ERROR, "Player with username '" + username + "' is not online.");
                     return;
@@ -59,7 +60,7 @@ public class KillCommand extends Command {
                 MatchManager.killPlayer(matchData, targetPlayer);
 
                 if (matchData.getAlivePlayerCount() == 1) {
-                    CustomPlayer winner = matchData.getAlivePlayers().iterator().next();
+                    MatchPlayer winner = matchData.getAlivePlayers().iterator().next();
                     MatchManager.winMatch(matchData, winner);
                 }
             } else {

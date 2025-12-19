@@ -1,5 +1,6 @@
 package dev.proplayer919.konstruct;
 
+import dev.proplayer919.konstruct.matches.MatchPlayer;
 import dev.proplayer919.konstruct.matches.PlayerStatus;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,7 +9,7 @@ import net.minestom.server.network.player.GameProfile;
 import net.minestom.server.network.player.PlayerConnection;
 
 @Getter
-public class CustomPlayer extends Player {
+public class CustomPlayer extends Player implements MatchPlayer {
     @Setter
     private PlayerStatus playerStatus;
 
@@ -19,6 +20,7 @@ public class CustomPlayer extends Player {
         super(playerConnection, gameProfile);
     }
 
+    @Override
     public boolean isAlive() {
         return this.playerStatus == PlayerStatus.ALIVE;
     }

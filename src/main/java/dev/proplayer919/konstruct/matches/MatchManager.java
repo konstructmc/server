@@ -1,6 +1,8 @@
 package dev.proplayer919.konstruct.matches;
 
 import dev.proplayer919.konstruct.CustomPlayer;
+import dev.proplayer919.konstruct.bot.BotPlayer;
+import dev.proplayer919.konstruct.bot.UsernameGenerator;
 import dev.proplayer919.konstruct.hubs.HubData;
 import dev.proplayer919.konstruct.hubs.HubRegistry;
 import dev.proplayer919.konstruct.loot.ChestIdentifier;
@@ -35,8 +37,7 @@ import net.minestom.server.inventory.Inventory;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class MatchManager {
@@ -57,7 +58,8 @@ public class MatchManager {
             if (matchData.getStatus() == MatchStatus.WAITING && !matchData.isFull()
                     && millisUntilStart >= 60000) {
                 Collection<CustomPlayer> playersInHubs = HubRegistry.getAllPlayersInHubs();
-                MessagingHelper.sendMessage(playersInHubs, MatchMessages.createMatchAdvertiseMessage(matchData.getMatchUUID(), matchData.getHostUsername(), matchData.getStartTime()));
+                Collection<MatchPlayer> matchPlayersInHubs = new ArrayList<>(playersInHubs);
+                MessagingHelper.sendMessage(matchPlayersInHubs, MatchMessages.createMatchAdvertiseMessage(matchData.getMatchUUID(), matchData.getHostUsername(), matchData.getStartTime()));
 
                 // Send a message to people in the match as well
                 MessagingHelper.sendMessage(matchData.getPlayers(), MatchMessages.createCountdownMessage(matchData.getStartTime(), matchData.getPlayers().size(), matchData.getMinPlayers()));
@@ -72,6 +74,15 @@ public class MatchManager {
         }, delayMillis, TimeUnit.MILLISECONDS);
 
         // Setup events
+        matchData.getLobbyInstance().eventNode().addListener(PlayerMoveEvent.class, event -> {
+            Player player = event.getPlayer();
+
+            if (player.getPosition().y() < 0) {
+                player.teleport(new Pos(0.5, 40, 0.5));
+                MessagingHelper.sendMessage(player, MessageType.SERVER, "You fell into the abyss, teleporting you back to spawn.");
+            }
+        });
+
         matchData.getLobbyInstance().eventNode().addListener(PlayerDisconnectEvent.class, event -> {
             // Handle player disconnect
             playerLeaveMatch(matchData, (CustomPlayer) event.getPlayer());
@@ -91,9 +102,9 @@ public class MatchManager {
             // Handle player death
             event.setCancelled(true);
 
-            if (event.getEntity() instanceof CustomPlayer player) {
+            if (event.getEntity() instanceof MatchPlayer player) {
                 if (matchData.getPlayerAttackers().containsKey(player)) {
-                    CustomPlayer killer = matchData.getPlayerAttackers().get(player);
+                    MatchPlayer killer = matchData.getPlayerAttackers().get(player);
 
                     killPlayer(matchData, player);
 
@@ -120,11 +131,10 @@ public class MatchManager {
 
             // Find if the attack is fatal
             Entity target = event.getTarget();
-            if (target instanceof CustomPlayer player) {
-                if (player.isAlive()) {
-                    // Set the player's attacker
-                    matchData.getPlayerAttackers().remove(player);
-                    matchData.getPlayerAttackers().put(player, player);
+            if (target instanceof MatchPlayer player) {
+                Entity attacker = event.getEntity();
+                if (attacker instanceof MatchPlayer attackerPlayer) {
+                    matchData.getPlayerAttackers().put(player, attackerPlayer);
                 }
             }
         });
@@ -255,8 +265,14 @@ public class MatchManager {
     }
 
     public static void startPreMatchCountdown(MatchData matchData) {
+        if (matchData.getStatus() != MatchStatus.WAITING) {
+            return;
+        }
+
         // Use a plain thread for the 5-second countdown to avoid tying up the scheduler
         new Thread(() -> {
+            matchData.setStatus(MatchStatus.PRE_COUNTDOWN);
+
             int countdown = 5;
             while (countdown > 0) {
                 Component message = MatchMessages.createPreMatchCountdownMessage(countdown);
@@ -309,7 +325,7 @@ public class MatchManager {
 
     public static void teleportPlayersToStartingLocations(MatchData matchData) {
         int playerIndex = 0;
-        for (CustomPlayer player : matchData.getPlayers()) {
+        for (MatchPlayer player : matchData.getPlayers()) {
             Pos spawnPos = PlayerSpawnHelper.getSpawnPointForPlayer(playerIndex, matchData.getPlayerCount());
             player.setInstance(matchData.getMatchInstance());
             player.teleport(spawnPos);
@@ -320,8 +336,25 @@ public class MatchManager {
     }
 
     public static void startMatch(MatchData matchData) {
-        if (matchData.getStatus() == MatchStatus.WAITING) {
+        if (matchData.getStatus() == MatchStatus.PRE_COUNTDOWN) {
+            // Spawn up to 4 extra bots if the match isn't full
+            int botsToSpawn = matchData.getMaxPlayers() - matchData.getPlayers().size();
+            for (int i = 0; i < botsToSpawn && i < 4; i++) {
+                Collection<String> existingUsernames = new ArrayList<>();
+                for (MatchPlayer matchPlayer : matchData.getPlayers()) {
+                    existingUsernames.add(matchPlayer.getUsername());
+                }
+
+                String username = UsernameGenerator.generateUniqueUsername(existingUsernames);
+                PlayerSkin skin = new PlayerSkin("ewogICJ0aW1lc3RhbXAiIDogMTY0MDI2OTY5OTg0OSwKICAicHJvZmlsZUlkIiA6ICIwMmIwZTg2ZGM4NmE0YWU3YmM0MTAxNWQyMWY4MGMxYyIsCiAgInByb2ZpbGVOYW1lIiA6ICJab21iaWUiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzgzYWFhZWUyMjg2OGNhZmRhYTFmNmY0YTBlNTZiMGZkYjY0Y2QwYWVhYWJkNmU4MzgxOGMzMTJlYmU2NjQzNyIKICAgIH0KICB9Cn0=", "DKIiqztp2XXi973AJeJ5jSGaLVIFAM+XyQGhRwmYOSlEo2Scc2YcaKi6gQCAmTtNeWlnf9wagZ8sezJzePANn0Yi3xMETd5OojATXKamNoQB7VsRRhXNl47WmOz5/DpZPk5yxVIPWo6jJCb7RwDkX/CIaYJPErA0tQOB8UyR2g37oZYgkHLqj80080scReh4KiZYs3ymfF/5vRUdkyBbaiVpeB87V4t4HFscoZt8iJlaa3fD8ZR0wbkMe7VGC5iafrXTGBbBMDlBYBkRtuR4Mqg2IRZpXFIh3FlNitW8x3hUsRHPDPBSGLgErjOnFtVafytt3Q2t3zc0jCmL8/wGzlppghVzK0IrAoAHCL7FCe1uGwFf8lRgTk7Vq2ZLFg0qxZN4dbO51vj7MT+MIUkP+7Zs2k2yxlmFdMGQiIsF37HVjfc6QdBVAfAFr2+1PcJ0ffRkgUTjyqL0UJv5qPqEJ9MBXhKwn4JlPigljvQIIYj/JxIWjJT1EgBKuv4M3g59jQL0vB4K9jeasI8vvXGAvTJFqa7KkumXKUoiZwSU4mVYrzxYlvQ2Ku14Q3pLl3BTsoeRkZq0YWabt+xHjMdK5srJZcV9AuGeIALMMxWGQA5riNAHQ5ZFpDq5vTYwfZn/+DsyG3MB5ftNTb2Dnsf5zbzpACW6uAbu/5csdKlrZMU=");
+                BotPlayer botPlayer = new BotPlayer(UUID.randomUUID(), username, skin, matchData.getPlayers().size() + 1);
+                MatchManager.spawnPlayerIntoMatch(matchData, botPlayer);
+            }
+
             if (matchData.hasEnoughPlayers()) {
+                // Show bots to all players
+                showBotsToPlayers(matchData);
+
                 // Teleport all players
                 teleportPlayersToStartingLocations(matchData);
 
@@ -340,12 +373,14 @@ public class MatchManager {
         matchOver(matchData);
     }
 
-    public static void killPlayer(MatchData matchData, CustomPlayer player) {
+    public static void killPlayer(MatchData matchData, MatchPlayer player) {
         if (player.isAlive()) {
-            // Drop items from the player's inventory
-            for (ItemStack itemStack : player.getInventory().getItemStacks()) {
-                if (itemStack.material() != Material.AIR) {
-                    ItemDropper.dropItemFromPlayer(itemStack, player, true);
+            if (player instanceof CustomPlayer customPlayer) {
+                // Drop items from the player's inventory
+                for (ItemStack itemStack : customPlayer.getInventory().getItemStacks()) {
+                    if (itemStack.material() != Material.AIR) {
+                        ItemDropper.dropItemFromPlayer(itemStack, customPlayer, true);
+                    }
                 }
             }
 
@@ -362,10 +397,15 @@ public class MatchManager {
             player.setGameMode(GameMode.SPECTATOR);
 
             player.teleport(matchData.getSpectatorSpawn());
+
+            if (player instanceof BotPlayer botPlayer) {
+                removeBotFromPlayers(matchData, botPlayer);
+                botPlayer.remove();
+            }
         }
     }
 
-    public static void winMatch(MatchData matchData, CustomPlayer player) {
+    public static void winMatch(MatchData matchData, MatchPlayer player) {
         if (player.isAlive()) {
             matchData.setStatus(MatchStatus.ENDED);
 
@@ -386,11 +426,15 @@ public class MatchManager {
     }
 
     public static void matchOver(MatchData matchData) {
-        for (CustomPlayer player : matchData.getPlayers()) {
-            PlayerHubHelper.returnPlayerToHub(player);
+        for (MatchPlayer matchPlayer : matchData.getPlayers()) {
+            if (matchPlayer instanceof CustomPlayer player) {
+                PlayerHubHelper.returnPlayerToHub(player);
 
-            MessagingHelper.sendMessage(player, MessageType.SERVER, "You have been returned to the hub.");
+                MessagingHelper.sendMessage(player, MessageType.SERVER, "You have been returned to the hub.");
+            }
         }
+
+        removeBotsFromPlayers(matchData);
 
         // De-register this instance
         MatchesRegistry.unregisterMatch(matchData.getMatchUUID());
@@ -402,12 +446,10 @@ public class MatchManager {
         }
     }
 
-    public static void spawnPlayerIntoMatch(MatchData matchData, CustomPlayer player) {
+    public static void spawnPlayerIntoMatch(MatchData matchData, MatchPlayer player) {
         HubData hubData = HubRegistry.getInstanceWithPlayer(player.getUuid());
         if (hubData != null) {
             hubData.getPlayers().remove(player);
-        } else {
-            throw new IllegalStateException("Player is not in any hub instance");
         }
 
         matchData.addPlayer(player);
@@ -454,6 +496,55 @@ public class MatchManager {
                     winMatch(matchData, matchData.getAlivePlayers().iterator().next());
                 }
             }
+        }
+    }
+
+    public static void showBotsToPlayers(MatchData matchData) {
+        Collection<BotPlayer> botPlayers = new ArrayList<>();
+        Collection<CustomPlayer> players = new ArrayList<>();
+        for (MatchPlayer matchPlayer : matchData.getPlayers()) {
+            if (matchPlayer instanceof BotPlayer botPlayer) {
+                botPlayers.add(botPlayer);
+            } else if (matchPlayer instanceof CustomPlayer customPlayer) {
+                players.add(customPlayer);
+            }
+        }
+
+        for (CustomPlayer player : players) {
+            for (BotPlayer botPlayer : botPlayers) {
+                botPlayer.addPlayerViewer(player);
+            }
+        }
+    }
+
+    public static void removeBotsFromPlayers(MatchData matchData) {
+        Collection<BotPlayer> botPlayers = new ArrayList<>();
+        Collection<CustomPlayer> players = new ArrayList<>();
+        for (MatchPlayer matchPlayer : matchData.getPlayers()) {
+            if (matchPlayer instanceof BotPlayer botPlayer) {
+                botPlayers.add(botPlayer);
+            } else if (matchPlayer instanceof CustomPlayer customPlayer) {
+                players.add(customPlayer);
+            }
+        }
+
+        for (CustomPlayer player : players) {
+            for (BotPlayer botPlayer : botPlayers) {
+                botPlayer.removePlayerViewer(player);
+            }
+        }
+    }
+
+    public static void removeBotFromPlayers(MatchData matchData, BotPlayer botToRemove) {
+        Collection<CustomPlayer> players = new ArrayList<>();
+        for (MatchPlayer matchPlayer : matchData.getPlayers()) {
+            if (matchPlayer instanceof CustomPlayer customPlayer) {
+                players.add(customPlayer);
+            }
+        }
+
+        for (CustomPlayer player : players) {
+            botToRemove.removePlayerViewer(player);
         }
     }
 }

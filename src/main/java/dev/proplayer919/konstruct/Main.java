@@ -1,5 +1,6 @@
 package dev.proplayer919.konstruct;
 
+import dev.proplayer919.konstruct.bot.BotPlayer;
 import dev.proplayer919.konstruct.commands.HostCommand;
 import dev.proplayer919.konstruct.commands.JoinMatchCommand;
 import dev.proplayer919.konstruct.commands.LeaveMatchCommand;
@@ -24,9 +25,11 @@ import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
+import net.minestom.server.entity.PlayerSkin;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.player.*;
 import net.minestom.server.event.server.ServerListPingEvent;
+import net.minestom.server.event.trait.PlayerInstanceEvent;
 import net.minestom.server.instance.*;
 import net.minestom.server.coordinate.Pos;
 import dev.proplayer919.konstruct.messages.MessagingHelper;
@@ -42,8 +45,9 @@ import org.everbuild.blocksandstuff.blocks.BlockBehaviorRuleRegistrations;
 import org.everbuild.blocksandstuff.blocks.BlockPlacementRuleRegistrations;
 
 import java.io.*;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
+import java.util.UUID;
 
 public class Main {
     public final static CombatFeatureSet modernVanilla = CombatFeatures.modernVanilla();
@@ -154,20 +158,24 @@ public class Main {
         // Custom player provider
         MinecraftServer.getConnectionManager().setPlayerProvider(CustomPlayer::new);
 
+        // Load favicon
+        final byte[] favicon;
+        try {
+            // Load from resource file
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            InputStream in = Main.class.getResourceAsStream("/icon.png");
+            if (in == null) {
+                throw new FileNotFoundException("Resource /icon.png not found");
+            }
+            favicon = output.toByteArray();
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
         // Player spawning
         GlobalEventHandler globalEventHandler = MinecraftServer.getGlobalEventHandler();
 
         globalEventHandler.addListener(ServerListPingEvent.class, event -> {
-            byte[] favicon = null;
-            try {
-                Path iconPath = Path.of("icon.png");
-                if (Files.exists(iconPath)) {
-                    favicon = Files.readAllBytes(iconPath);
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
             int onlinePlayers = MinecraftServer.getConnectionManager().getOnlinePlayerCount();
 
             event.setStatus(Status.builder()

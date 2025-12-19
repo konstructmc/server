@@ -1,5 +1,5 @@
 package dev.proplayer919.konstruct.matches;
 
 public enum MatchStatus {
-    WAITING, COUNTDOWN, IN_PROGRESS, ENDED
+    WAITING, PRE_COUNTDOWN, COUNTDOWN, IN_PROGRESS, ENDED
 }

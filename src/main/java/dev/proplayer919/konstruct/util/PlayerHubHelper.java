@@ -3,6 +3,7 @@ package dev.proplayer919.konstruct.util;
 import dev.proplayer919.konstruct.CustomPlayer;
 import dev.proplayer919.konstruct.hubs.HubData;
 import dev.proplayer919.konstruct.hubs.HubRegistry;
+import dev.proplayer919.konstruct.matches.MatchPlayer;
 import dev.proplayer919.konstruct.sidebar.SidebarData;
 import dev.proplayer919.konstruct.sidebar.SidebarRegistry;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
@@ -40,29 +41,31 @@ public class PlayerHubHelper {
         resetPlayerAttributes(player);
     }
 
-    public static void resetPlayerAttributes(CustomPlayer player) {
-        Attribute.values().forEach(attribute -> {
-            player.getAttribute(attribute).modifiers().forEach(modifier -> {
-                player.getAttribute(attribute).modifiers().remove(modifier);
+    public static void resetPlayerAttributes(MatchPlayer matchPlayer) {
+        if (matchPlayer instanceof CustomPlayer player) {
+            Attribute.values().forEach(attribute -> {
+                player.getAttribute(attribute).modifiers().forEach(modifier -> {
+                    player.getAttribute(attribute).modifiers().remove(modifier);
+                });
             });
-        });
 
-        player.setHealth(20);
-        player.setAdditionalHearts(0);
+            player.setHealth(20);
+            player.setAdditionalHearts(0);
 
-        player.setFood(20);
-        player.setFoodSaturation(0);
+            player.setFood(20);
+            player.setFoodSaturation(0);
 
-        player.setFireTicks(0);
-        player.setGlowing(false);
-        player.setAllowFlying(false);
+            player.setFireTicks(0);
+            player.setGlowing(false);
+            player.setAllowFlying(false);
 
-        player.setLevel(0);
-        player.setExp(0);
-        player.clearEffects();
+            player.setLevel(0);
+            player.setExp(0);
+            player.clearEffects();
 
-        player.getInventory().clear();
-        player.resetTitle();
-        player.tagHandler().updateContent(CompoundBinaryTag.empty());
+            player.getInventory().clear();
+            player.resetTitle();
+            player.tagHandler().updateContent(CompoundBinaryTag.empty());
+        }
     }
 }

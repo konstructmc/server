@@ -3,6 +3,7 @@ package dev.proplayer919.konstruct.commands.admin;
 import dev.proplayer919.konstruct.CustomPlayer;
 import dev.proplayer919.konstruct.matches.MatchData;
 import dev.proplayer919.konstruct.matches.MatchManager;
+import dev.proplayer919.konstruct.matches.MatchPlayer;
 import dev.proplayer919.konstruct.matches.MatchesRegistry;
 import dev.proplayer919.konstruct.messages.MessageType;
 import dev.proplayer919.konstruct.messages.MessagingHelper;
@@ -30,7 +31,7 @@ public class WinCommand extends Command {
             if (sender instanceof CustomPlayer player) {
                 MatchData matchData = MatchesRegistry.getMatchWithPlayer(player);
                 if (matchData != null) {
-                    for (CustomPlayer customPlayer : matchData.getPlayers()) {
+                    for (MatchPlayer customPlayer : matchData.getPlayers()) {
                         suggestion.addEntry(new SuggestionEntry(customPlayer.getUsername()));
                     }
                 }
@@ -52,7 +53,7 @@ public class WinCommand extends Command {
                     return;
                 }
 
-                CustomPlayer targetPlayer = (CustomPlayer) MinecraftServer.getConnectionManager().findOnlinePlayer(target);
+                MatchPlayer targetPlayer = matchData.getPlayers().stream().filter(p -> p.getUsername().equalsIgnoreCase(target)).findFirst().orElse(null);
                 if (targetPlayer == null) {
                     MessagingHelper.sendMessage(sender, MessageType.ERROR, "Player with username '" + target + "' is not online.");
                     return;
@@ -64,7 +65,7 @@ public class WinCommand extends Command {
                 }
 
                 // Kill all other players and declare this player the winner
-                for (CustomPlayer customPlayer : matchData.getPlayers()) {
+                for (MatchPlayer customPlayer : matchData.getPlayers()) {
                     if (customPlayer != targetPlayer && matchData.isPlayerAlive(customPlayer)) {
                         MatchManager.killPlayer(matchData, customPlayer);
                     }

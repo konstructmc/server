@@ -8,6 +8,7 @@ import lombok.Setter;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.instance.Instance;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -19,18 +20,18 @@ public class MatchData {
     private final UUID hostUUID;
     private final String hostUsername;
 
-    private final Collection<CustomPlayer> players = new ArrayList<>();
+    private final Collection<MatchPlayer> players = new ArrayList<>();
     private final Instance lobbyInstance;
     private final Instance matchInstance;
 
-    private final Map<CustomPlayer, CustomPlayer> playerAttackers = new HashMap<>();
+    private final Map<MatchPlayer, MatchPlayer> playerAttackers = new HashMap<>();
 
     @Setter
     private MatchStatus status = MatchStatus.WAITING;
 
     private final ChestLootRegistry chestLootRegistry = new ChestLootRegistry();
     private final PlayerInventoryBlockRegistry inventoryBlockRegistry =  new PlayerInventoryBlockRegistry();
-    private final Date startTime = new Date(System.currentTimeMillis() + 300000); // Default to 5 minutes from now
+    private final Date startTime = new Date(System.currentTimeMillis() + Duration.ofSeconds(20).toMillis()); // Default to 5 minutes from now
 
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
@@ -38,7 +39,7 @@ public class MatchData {
     private final Pos spectatorSpawn = new Pos(0.5, 60, 0.5);
 
     private final int minPlayers = 2;
-    private final int maxPlayers = 2;
+    private final int maxPlayers = 16;
 
     private final Pos buildingBounds1 = new Pos(-150, 35, -150);
     private final Pos buildingBounds2 = new Pos(150, 60, 150);
@@ -51,13 +52,13 @@ public class MatchData {
         this.matchInstance = matchInstance;
     }
 
-    public boolean isPlayerAlive(CustomPlayer player) {
+    public boolean isPlayerAlive(MatchPlayer player) {
         return players.contains(player) && player.isAlive();
     }
 
-    public Collection<CustomPlayer> getAlivePlayers() {
-        Collection<CustomPlayer> alivePlayers = new ArrayList<>();
-        for (CustomPlayer player : players) {
+    public Collection<MatchPlayer> getAlivePlayers() {
+        Collection<MatchPlayer> alivePlayers = new ArrayList<>();
+        for (MatchPlayer player : players) {
             if (player.isAlive()) {
                 alivePlayers.add(player);
             }
@@ -73,9 +74,9 @@ public class MatchData {
         return getAlivePlayers().size();
     }
 
-    public Collection<CustomPlayer> getSpectators() {
-        Collection<CustomPlayer> spectators = new ArrayList<>();
-        for (CustomPlayer player : players) {
+    public Collection<MatchPlayer> getSpectators() {
+        Collection<MatchPlayer> spectators = new ArrayList<>();
+        for (MatchPlayer player : players) {
             if (!player.isAlive()) {
                 spectators.add(player);
             }
@@ -95,11 +96,11 @@ public class MatchData {
         return players.size() >= minPlayers;
     }
 
-    public void addPlayer(CustomPlayer player) {
+    public void addPlayer(MatchPlayer player) {
         this.players.add(player);
     }
 
-    public void removePlayer(CustomPlayer player) {
+    public void removePlayer(MatchPlayer player) {
         this.players.remove(player);
     }
 
