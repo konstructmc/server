@@ -1,6 +1,5 @@
 package dev.proplayer919.konstruct;
 
-import dev.proplayer919.konstruct.bot.BotPlayer;
 import dev.proplayer919.konstruct.commands.HostCommand;
 import dev.proplayer919.konstruct.commands.JoinMatchCommand;
 import dev.proplayer919.konstruct.commands.LeaveMatchCommand;
@@ -21,15 +20,12 @@ import net.bridgesplash.sidebar.SidebarAPI;
 import net.kyori.adventure.text.Component;
 import net.mangolise.anticheat.MangoAC;
 import net.mangolise.anticheat.events.PlayerFlagEvent;
-import net.minestom.server.Auth;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
-import net.minestom.server.entity.PlayerSkin;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.player.*;
 import net.minestom.server.event.server.ServerListPingEvent;
-import net.minestom.server.event.trait.PlayerInstanceEvent;
 import net.minestom.server.instance.*;
 import net.minestom.server.coordinate.Pos;
 import dev.proplayer919.konstruct.messages.MessagingHelper;
@@ -46,15 +42,13 @@ import org.everbuild.blocksandstuff.blocks.BlockPlacementRuleRegistrations;
 
 import java.io.*;
 import java.nio.file.Path;
-import java.util.Objects;
-import java.util.UUID;
 
 public class Main {
     public final static CombatFeatureSet modernVanilla = CombatFeatures.modernVanilla();
 
     static void main(String[] args) {
         // Initialization
-        MinecraftServer minecraftServer = MinecraftServer.init(new Auth.Online());
+        MinecraftServer minecraftServer = MinecraftServer.init();
 
         MinestomPvP.init();
 

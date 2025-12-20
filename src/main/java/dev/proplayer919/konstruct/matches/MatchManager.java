@@ -84,6 +84,43 @@ public class MatchManager {
             }
         });
 
+        matchData.getMatchInstance().eventNode().addListener(PlayerMoveEvent.class, event -> {
+            // If the match is in countdown, prevent movement
+            if (matchData.getStatus() == MatchStatus.COUNTDOWN) {
+                // If the event didn't change position, don't cancel
+                if (!event.getNewPosition().samePoint(event.getPlayer().getPosition())) {
+                    event.setCancelled(true);
+                }
+                return;
+            }
+
+            // If the player is frozen, prevent movement
+            CustomPlayer player = (CustomPlayer) event.getPlayer();
+            if (player.isFrozen()) {
+                // If the event didn't change position, don't cancel
+                if (!event.getNewPosition().samePoint(player.getPosition())) {
+                    event.setCancelled(true);
+                }
+                return;
+            }
+
+            // If the player is below Y=0 and are alive while the match is in progress, kill them
+            if (player.getPosition().y() < 0) {
+                if (matchData.getStatus() == MatchStatus.IN_PROGRESS && player.isAlive()) {
+                    killPlayer(matchData, player);
+
+                    MessagingHelper.sendMessage(matchData.getPlayers(), MatchMessages.createPlayerVoidMessage(player.getUsername(), matchData.getAlivePlayerCount() - 1));
+
+                    if (matchData.getAlivePlayerCount() == 1) {
+                        winMatch(matchData, matchData.getAlivePlayers().iterator().next());
+                    }
+                } else {
+                    // Teleport the player back to the spectator spawn
+                    player.teleport(matchData.getLobbySpawn());
+                }
+            }
+        });
+
         matchData.getLobbyInstance().eventNode().addListener(PlayerDisconnectEvent.class, event -> {
             // Handle player disconnect
             playerLeaveMatch(matchData, (CustomPlayer) event.getPlayer());
@@ -109,7 +146,7 @@ public class MatchManager {
 
                     killPlayer(matchData, player);
 
-                    MessagingHelper.sendMessage(matchData.getPlayers(), MatchMessages.createPlayerEliminatedMessage(player.getUsername(), killer.getUsername(), matchData.getAlivePlayerCount() - 1));
+                    MessagingHelper.sendMessage(matchData.getPlayers(), MatchMessages.createPlayerEliminatedMessage(player.getUsername(), killer.getUsername(), matchData.getAlivePlayerCount()));
 
                     if (matchData.getAlivePlayerCount() == 1) {
                         winMatch(matchData, matchData.getAlivePlayers().iterator().next());
@@ -136,40 +173,6 @@ public class MatchManager {
                 Entity attacker = event.getEntity();
                 if (attacker instanceof MatchPlayer attackerPlayer) {
                     matchData.getPlayerAttackers().put(player, attackerPlayer);
-                }
-            }
-        });
-
-        matchData.getMatchInstance().eventNode().addListener(PlayerMoveEvent.class, event -> {
-            // If the match is in countdown, prevent movement
-            if (matchData.getStatus() == MatchStatus.COUNTDOWN) {
-                event.setCancelled(true);
-                return;
-            }
-
-            // If the player is frozen, prevent movement
-            CustomPlayer player = (CustomPlayer) event.getPlayer();
-            if (player.isFrozen()) {
-                // If the event didn't change position, don't cancel
-                if (!event.getNewPosition().sameView(event.getPlayer().getPosition())) {
-                    event.setCancelled(true);
-                }
-                return;
-            }
-
-            // If the player is below Y=0 and are alive while the match is in progress, kill them
-            if (player.getPosition().y() < 0) {
-                if (matchData.getStatus() == MatchStatus.IN_PROGRESS && player.isAlive()) {
-                    killPlayer(matchData, player);
-
-                    MessagingHelper.sendMessage(matchData.getPlayers(), MatchMessages.createPlayerVoidMessage(player.getUsername(), matchData.getAlivePlayerCount() - 1));
-
-                    if (matchData.getAlivePlayerCount() == 1) {
-                        winMatch(matchData, matchData.getAlivePlayers().iterator().next());
-                    }
-                } else {
-                    // Teleport the player back to the spectator spawn
-                    player.teleport(matchData.getLobbySpawn());
                 }
             }
         });
@@ -323,6 +326,13 @@ public class MatchManager {
             MessagingHelper.sendSound(matchData.getPlayers(), Sound.sound(Key.key("minecraft:block.note_block.pling"), Sound.Source.AMBIENT, 1.0f, 1.0f));
 
             matchData.setStatus(MatchStatus.IN_PROGRESS);
+
+            // Start all bots
+            for (MatchPlayer player : matchData.getPlayers()) {
+                if (player instanceof BotPlayer bot) {
+                    bot.runBot();
+                }
+            }
         }, "game-start-countdown-" + matchData.getMatchUUID()).start();
     }
 
@@ -350,7 +360,7 @@ public class MatchManager {
 
                 String username = UsernameGenerator.generateUniqueUsername(existingUsernames);
                 PlayerSkin skin = new PlayerSkin("ewogICJ0aW1lc3RhbXAiIDogMTY0MDI2OTY5OTg0OSwKICAicHJvZmlsZUlkIiA6ICIwMmIwZTg2ZGM4NmE0YWU3YmM0MTAxNWQyMWY4MGMxYyIsCiAgInByb2ZpbGVOYW1lIiA6ICJab21iaWUiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzgzYWFhZWUyMjg2OGNhZmRhYTFmNmY0YTBlNTZiMGZkYjY0Y2QwYWVhYWJkNmU4MzgxOGMzMTJlYmU2NjQzNyIKICAgIH0KICB9Cn0=", "DKIiqztp2XXi973AJeJ5jSGaLVIFAM+XyQGhRwmYOSlEo2Scc2YcaKi6gQCAmTtNeWlnf9wagZ8sezJzePANn0Yi3xMETd5OojATXKamNoQB7VsRRhXNl47WmOz5/DpZPk5yxVIPWo6jJCb7RwDkX/CIaYJPErA0tQOB8UyR2g37oZYgkHLqj80080scReh4KiZYs3ymfF/5vRUdkyBbaiVpeB87V4t4HFscoZt8iJlaa3fD8ZR0wbkMe7VGC5iafrXTGBbBMDlBYBkRtuR4Mqg2IRZpXFIh3FlNitW8x3hUsRHPDPBSGLgErjOnFtVafytt3Q2t3zc0jCmL8/wGzlppghVzK0IrAoAHCL7FCe1uGwFf8lRgTk7Vq2ZLFg0qxZN4dbO51vj7MT+MIUkP+7Zs2k2yxlmFdMGQiIsF37HVjfc6QdBVAfAFr2+1PcJ0ffRkgUTjyqL0UJv5qPqEJ9MBXhKwn4JlPigljvQIIYj/JxIWjJT1EgBKuv4M3g59jQL0vB4K9jeasI8vvXGAvTJFqa7KkumXKUoiZwSU4mVYrzxYlvQ2Ku14Q3pLl3BTsoeRkZq0YWabt+xHjMdK5srJZcV9AuGeIALMMxWGQA5riNAHQ5ZFpDq5vTYwfZn/+DsyG3MB5ftNTb2Dnsf5zbzpACW6uAbu/5csdKlrZMU=");
-                BotPlayer botPlayer = new BotPlayer(UUID.randomUUID(), username, skin, matchData.getPlayers().size() + 1);
+                BotPlayer botPlayer = new BotPlayer(UUID.randomUUID(), username, skin, matchData.getPlayers().size() + 1, matchData);
                 MatchManager.spawnPlayerIntoMatch(matchData, botPlayer);
             }
 

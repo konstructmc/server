@@ -29,4 +29,5 @@ public interface MatchPlayer {
     void setEnableRespawnScreen(boolean enable);
     void setRespawnPoint(Pos respawnPoint);
     void sendActionBar(Component message);
+    double getEyeHeight();
 }
