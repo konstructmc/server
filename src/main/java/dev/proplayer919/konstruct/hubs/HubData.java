@@ -1,9 +1,9 @@
 package dev.proplayer919.konstruct.hubs;
 
+import dev.proplayer919.konstruct.CustomInstance;
 import lombok.Getter;
 import lombok.Setter;
 import net.minestom.server.entity.Player;
-import net.minestom.server.instance.Instance;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -13,10 +13,10 @@ public class HubData {
     @Setter
     private Collection<Player> players = new HashSet<>();
 
-    private final Instance instance;
+    private final CustomInstance instance;
     private final String id;
 
-    public HubData(Instance instance, String id) {
+    public HubData(CustomInstance instance, String id) {
         this.instance = instance;
         this.id = id;
     }

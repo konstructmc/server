@@ -1,5 +1,6 @@
 package dev.proplayer919.konstruct.matches;
 
+import dev.proplayer919.konstruct.CustomInstance;
 import dev.proplayer919.konstruct.CustomPlayer;
 import dev.proplayer919.konstruct.loot.ChestLootRegistry;
 import dev.proplayer919.konstruct.matches.modifiers.Modifier;
@@ -22,8 +23,8 @@ public class MatchData {
     private final String hostUsername;
 
     private final Collection<MatchPlayer> players = new ArrayList<>();
-    private final Instance lobbyInstance;
-    private final Instance matchInstance;
+    private final CustomInstance lobbyInstance;
+    private final CustomInstance matchInstance;
 
     private final Map<MatchPlayer, MatchPlayer> playerAttackers = new HashMap<>();
 
@@ -47,7 +48,7 @@ public class MatchData {
     private final Pos buildingBounds1 = new Pos(-150, 35, -150);
     private final Pos buildingBounds2 = new Pos(150, 60, 150);
 
-    public MatchData(CustomPlayer host, Instance lobbyInstance, Instance matchInstance) {
+    public MatchData(CustomPlayer host, CustomInstance lobbyInstance, CustomInstance matchInstance) {
         this.hostUUID = host.getUuid();
         this.hostUsername = host.getUsername();
 

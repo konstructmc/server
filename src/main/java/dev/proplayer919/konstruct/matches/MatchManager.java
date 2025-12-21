@@ -78,15 +78,6 @@ public class MatchManager {
         }, delayMillis, TimeUnit.MILLISECONDS);
 
         // Setup events
-        matchData.getLobbyInstance().eventNode().addListener(PlayerMoveEvent.class, event -> {
-            Player player = event.getPlayer();
-
-            if (player.getPosition().y() < 0) {
-                player.teleport(new Pos(0.5, 40, 0.5));
-                MessagingHelper.sendMessage(player, MessageType.SERVER, "You fell into the abyss, teleporting you back to spawn.");
-            }
-        });
-
         matchData.getMatchInstance().eventNode().addListener(PlayerMoveEvent.class, event -> {
             // If the match is in countdown, prevent movement
             if (matchData.getStatus() == MatchStatus.COUNTDOWN) {
@@ -196,6 +187,8 @@ public class MatchManager {
             // Check if it's a chest
             Block block = event.getBlock();
             if (block.name().equals("minecraft:chest") || block.name().equals("minecraft:waxed_copper_chest") || block.name().equals("minecraft:ender_chest")) {
+                event.setBlockingItemUse(true);
+
                 // Attempt to find the inventory in the loot registry
                 ChestIdentifier chestId = new ChestIdentifier(block, event.getBlockPosition().asPos());
                 Inventory chestInventory = matchData.getChestLootRegistry().getLoot(chestId);

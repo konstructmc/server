@@ -42,8 +42,6 @@ import java.io.*;
 import java.nio.file.Path;
 
 public class Main {
-    public final static CombatFeatureSet modernVanilla = CombatFeatures.modernVanilla();
-
     static void main(String[] args) {
         // Initialization
         MinecraftServer minecraftServer = MinecraftServer.init(new Auth.Online());
@@ -67,18 +65,7 @@ public class Main {
         // Create hub instances
         int hubs = 5; // Number of hub instances to create
         for (int i = 0; i < hubs; i++) {
-            InstanceContainer hubInstance = InstanceLoader.loadAnvilInstance("data/maps/hub", false);
-
-            hubInstance.eventNode().addListener(PlayerMoveEvent.class, event -> {
-                Player player = event.getPlayer();
-
-                if (player.getPosition().y() < 0) {
-                    player.teleport(new Pos(0.5, 40, 0.5));
-                    MessagingHelper.sendMessage(player, MessageType.SERVER, "You fell into the abyss, teleporting you back to spawn.");
-                }
-            });
-
-            HubData hubData = new HubData(hubInstance, "hub-" + (i + 1));
+            HubData hubData = new HubData(InstanceLoader.loadHubInstance(), "hub-" + (i + 1));
             HubRegistry.registerInstance(hubData);
         }
 
